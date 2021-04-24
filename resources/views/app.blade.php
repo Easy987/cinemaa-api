@@ -244,7 +244,7 @@
                                         <div id="collapsePart{{ $partIndex }}" class="accordion-collapse collapse" aria-labelledby="headingPart{{ $partIndex }}" data-bs-parent="#accordionPart{{ $partIndex }}">
                                             <div class="accordion-body">
 
-                                                <div class="table-responsive smaller-font">
+                                                <div class="scroll table-responsive smaller-font">
                                                     <table class="table" style="color: white;">
                                                         <thead>
                                                         <tr class="text-center">
@@ -301,7 +301,7 @@
                                                             <div id="collapseSeason{{ $seasonIndex }}Episode{{ $episodeIndex }}" class="accordion-collapse collapse" aria-labelledby="headingSeason{{ $seasonIndex }}Episode{{ $episodeIndex }}" data-bs-parent="#accordionSeason{{ $seasonIndex }}Episode{{ $episodeIndex }}">
                                                                 <div class="accordion-body">
 
-                                                                    <div class="table-responsive smaller-font">
+                                                                    <div class="scroll table-responsive smaller-font">
                                                                         <table class="table" style="color: white;">
                                                                             <thead>
                                                                             <tr class="text-center">
