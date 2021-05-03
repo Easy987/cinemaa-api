@@ -29,7 +29,9 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
 
         $schedule->call(function () {
-            $links = MovieLink::where('status', '!=', '3')->get();
+            $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
+                $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT']);
+            })->get();
 
             foreach($links as $link) {
                 dispatch(new CheckLink($link->id, $link->link))->onQueue('low');

@@ -204,6 +204,7 @@
                                 <table class="table" style="color: white;">
                                     <thead>
                                     <tr class="text-center">
+                                        <th scope="col">{{ __('base.play') }}</th>
                                         <th scope="col">{{ __('base.site') }}</th>
                                         <th scope="col">{{ __('base.quality') }}</th>
                                         <th scope="col">{{ __('base.language') }}</th>
@@ -211,20 +212,19 @@
                                         <th scope="col">{{ __('base.uploader') }}</th>
                                         <th scope="col">{{ __('base.report') }}</th>
                                         <th scope="col">{{ __('base.views') }}</th>
-                                        <th scope="col">{{ __('base.play') }}</th>
                                     </tr>
                                     </thead>
                                     <tbody class="text-center">
                                     @foreach($links as $link)
                                         <tr>
-                                            <th>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</th>
+                                            <td class="text-center"><a data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" href="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></a></td>
+                                            <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                             <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
                                             <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
                                             <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                             <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
                                             <td class="text-center"><button data-id="{{ $link['id'] }}" class="reportButton"><i data-toggle="tooltip" data-placement="top" title="{{ __('base.report') }}" class="fas fa-bug"></i></button></td>
                                             <td class="text-center">{{ $link['views'] }}</td>
-                                            <td class="text-center"><a data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" href="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></a></td>
                                         </tr>
                                     @endforeach
                                     </tbody>
@@ -248,6 +248,7 @@
                                                     <table class="table" style="color: white;">
                                                         <thead>
                                                         <tr class="text-center">
+                                                            <th scope="col">{{ __('base.play') }}</th>
                                                             <th scope="col">{{ __('base.site') }}</th>
                                                             <th scope="col">{{ __('base.quality') }}</th>
                                                             <th scope="col">{{ __('base.language') }}</th>
@@ -255,20 +256,19 @@
                                                             <th scope="col">{{ __('base.uploader') }}</th>
                                                             <th scope="col">{{ __('base.report') }}</th>
                                                             <th scope="col">{{ __('base.views') }}</th>
-                                                            <th scope="col">{{ __('base.play') }}</th>
                                                         </tr>
                                                         </thead>
                                                         <tbody class="text-center">
                                                         @foreach($part as $link)
                                                             <tr>
-                                                                <th>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</th>
+                                                                <td class="text-center"><a data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" href="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></a></td>
+                                                                <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                                                 <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
                                                                 <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
                                                                 <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                                                 <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
                                                                 <td class="text-center"><button data-id="{{ $link['id'] }}" class="reportButton"><i data-toggle="tooltip" data-placement="top" title="{{ __('base.report') }}" class="fas fa-bug"></i></button></td>
                                                                 <td class="text-center">{{ $link['views'] }}</td>
-                                                                <td class="text-center"><a data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" href="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></a></td>
                                                             </tr>
                                                         @endforeach
                                                         </tbody>
@@ -305,6 +305,7 @@
                                                                         <table class="table" style="color: white;">
                                                                             <thead>
                                                                             <tr class="text-center">
+                                                                                <th scope="col">{{ __('base.play') }}</th>
                                                                                 <th scope="col">{{ __('base.site') }}</th>
                                                                                 <th scope="col">{{ __('base.quality') }}</th>
                                                                                 <th scope="col">{{ __('base.language') }}</th>
@@ -312,20 +313,19 @@
                                                                                 <th scope="col">{{ __('base.uploader') }}</th>
                                                                                 <th scope="col">{{ __('base.report') }}</th>
                                                                                 <th scope="col">{{ __('base.views') }}</th>
-                                                                                <th scope="col">{{ __('base.play') }}</th>
                                                                             </tr>
                                                                             </thead>
                                                                             <tbody class="text-center">
                                                                             @foreach($episode as $link)
                                                                                 <tr>
-                                                                                    <th>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</th>
+                                                                                    <td class="text-center"><a data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" href="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></a></td>
+                                                                                    <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                                                                     <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
                                                                                     <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
                                                                                     <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                                                                     <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
                                                                                     <td class="text-center"><button data-id="{{ $link['id'] }}" class="reportButton"><i data-toggle="tooltip" data-placement="top" title="{{ __('base.report') }}" class="fas fa-bug"></i></button></td>
                                                                                     <td class="text-center">{{ $link['views'] }}</td>
-                                                                                    <td class="text-center"><a data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" href="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></a></td>
                                                                                 </tr>
                                                                             @endforeach
                                                                             </tbody>

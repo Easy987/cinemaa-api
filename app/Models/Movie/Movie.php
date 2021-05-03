@@ -131,7 +131,8 @@ class Movie extends Model implements Viewable
 
     public function scopeTop($query)
     {
-        return $query->active()->where('type', (string) MovieTypeEnum::Movie)->orderByDesc('watched_at')->limit(10);
+        //return $query->active()->where('type', (string) MovieTypeEnum::Movie)->orderByDesc('watched_at')->limit(10);
+        return $query->active()->where('is_premier', 1)->limit(10);
     }
 
     public function scopePopular($query)

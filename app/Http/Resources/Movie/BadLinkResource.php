@@ -31,17 +31,21 @@ class BadLinkResource extends JsonResource
             }
 
         } else {
-            $array['reportable'] = [
-                'youtube_id' => $this->reportable->youtube_id
-            ];
+            if(isset($this->reportable->youtube_id)) {
+                $array['reportable'] = [
+                    'youtube_id' => $this->reportable->youtube_id
+                ];
+            }
         }
 
-        $array['movie'] = [
-            'type' => $this->movie->type,
-            'titles' => new TitleCollection($this->movie->titles),
-            'slugs' => new SlugCollection($this->movie->titles),
-            'year' => $this->movie->year
-        ];
+        if(isset($this->movie->type)) {
+            $array['movie'] = [
+                'type' => $this->movie->type,
+                'titles' => new TitleCollection($this->movie->titles),
+                'slugs' => new SlugCollection($this->movie->titles),
+                'year' => $this->movie->year
+            ];
+        }
 
         return $array;
     }

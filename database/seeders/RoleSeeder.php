@@ -59,6 +59,7 @@ class RoleSeeder extends Seeder
          * ADMINISTRATOR ROLES
          */
         $permissions[] = Permission::firstOrCreate(['name' => 'admin.users.index']);
+        $permissions[] = Permission::firstOrCreate(['name' => 'admin.sites.index']);
         $administratorRole->syncPermissions($permissions);
 
         /*

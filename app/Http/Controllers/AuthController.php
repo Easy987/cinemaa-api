@@ -209,28 +209,29 @@ class AuthController extends Controller
     public function profilePicture(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
         ]);
 
         $userID = $request->user()->id;
         $basePath = storage_path('images/profiles/');
 
-        $userProfilePicture = UserProfilePicture::where('user_id', $userID)->first();
-        if($userProfilePicture) {
+        $userProfilePictures = UserProfilePicture::where('user_id', $userID)->get();
+        foreach($userProfilePictures as $userProfilePicture) {
             File::delete($basePath . '/' . $userID . '/' . $userProfilePicture->id . '.' . $userProfilePicture->extension);
             $userProfilePicture->delete();
         }
 
         $userProfilePicture = UserProfilePicture::create([
             'user_id' => $userID,
-            'extension' => $request->image->extension()
+            'extension' => 'png'
         ]);
 
-        $imageName = $userProfilePicture->id.'.'.$request->image->extension();
+        $imageName = $userProfilePicture->id.'.png';
 
         File::makeDirectory($basePath . '/' . $userID, 0777, true, true);
 
         $photo = Image::make($request->image)
+            ->resize(100, 100)
             ->encode('png',100);
 
         Storage::disk('profile')->put( $userID . '/' . $imageName, $photo);

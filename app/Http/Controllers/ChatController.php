@@ -241,7 +241,7 @@ class ChatController extends Controller
         $roomUsers = $room->users()->where('last_activity_at', '>', Carbon::now()->subDays(2))->get();
 
         foreach($roomUsers as $roomUser) {
-            broadcast(new ChatMessageUpdated($roomUser, $messageResource));
+            broadcast(new ChatMessageUpdated($roomUser->id, $messageResource));
         }
 
         return $messageResource;
@@ -375,10 +375,12 @@ class ChatController extends Controller
         $unread = 0;
 
         foreach($chatRooms as $chatRoom) {
-            $lastMessage = (new ChatLastMessageResource($chatRoom->lastMessage()))->resolve();
+            if($chatRoom->lastMessage()) {
+                $lastMessage = (new ChatLastMessageResource($chatRoom->lastMessage()))->resolve();
 
-            if($lastMessage['new'] === 1) {
-                $unread++;
+                if($lastMessage['new'] === 1) {
+                    $unread++;
+                }
             }
         }
 

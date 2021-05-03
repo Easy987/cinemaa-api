@@ -413,7 +413,7 @@ class AdminController extends Controller
             if($this->hasAccessToMovie($movieID, $request->user())) {
                 $movie = Movie::findOrFail($movieID);
 
-                File::deleteDirectory(storage_path() . '/images/movies/' . $movie->id);
+                //File::deleteDirectory(storage_path() . '/images/movies/' . $movie->id);
 
                 $movie->delete();
 
@@ -595,6 +595,37 @@ class AdminController extends Controller
         return response('', 404);
     }
 
+    public function deleteLinks(Request $request)
+    {
+        if($request->user()->can('links.submit')) {
+            $validator = Validator::make($request->all(), [
+                'ids' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
+            }
+
+            $linkIDs = json_decode($request->get('ids'), true);
+
+            foreach($linkIDs as $linkID) {
+                if($linkID['value']) {
+                    $link = MovieLink::findOrFail($linkID['id']);
+
+                    if(!$request->user()->can('admin.movies.index') && $link->user_id !== $request->user()->id) {
+                        return response('', 404);
+                    }
+
+                    $link->delete();
+                }
+            }
+
+            return response('', 202);
+        }
+
+        return response('', 404);
+    }
+
     public function blockLink(Request $request)
     {
         if($request->user()->can('admin.index')) {
@@ -729,6 +760,7 @@ class AdminController extends Controller
         if($request->user()->can('admin.reports.index')) {
             $validator = Validator::make($request->all(), [
                 'id' => 'required|string',
+                'remove' => 'required'
             ]);
 
             if ($validator->fails()) {
@@ -736,7 +768,18 @@ class AdminController extends Controller
             }
 
             $badLinkID = $request->get('id');
+            $remove = $request->get('remove');
+
             $badLink = BadLink::findOrFail($badLinkID);
+
+            if($remove) {
+                if($badLink->reportable_type === MovieVideo::class) {
+                    MovieVideo::where('id', $badLink->reportable->id)->delete();
+                } else {
+                    MovieLink::where('id', $badLink->reportable->id)->delete();
+                }
+            }
+
             $badLink->delete();
 
             return response('', 202);

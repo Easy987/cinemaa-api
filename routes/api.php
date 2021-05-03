@@ -149,6 +149,7 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
 
     Route::get('links', [AdminController::class, 'links']);
     Route::delete('links', [AdminController::class, 'deleteLink']);
+    Route::delete('linksMultiple', [AdminController::class, 'deleteLinks']);
     Route::post('links/block', [AdminController::class, 'blockLink']);
     Route::post('links/accept', [AdminController::class, 'acceptLink']);
     Route::get('links/{id}', [AdminController::class, 'link']);
@@ -163,7 +164,9 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
 });
 
 Route::get('nBcYyMVjB8', function() {
-    $links = MovieLink::where('status', '!=', '3')->get();
+    $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
+        $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT']);
+    })->get();
 
     foreach($links as $link) {
         dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
