@@ -75,7 +75,7 @@ class CheckLink implements ShouldQueue
         if($statusCode === 200) {
             $linkBody = Str::lower($response->getBody()->getContents());
 
-            if(!Str::contains($this->link, 'dood') && Str::contains($linkBody, $this->errorTexts)) {
+            if(!Str::contains($this->link, 'dood') && !Str::contains($this->link, 'streamzz') && Str::contains($linkBody, $this->errorTexts)) {
                 MovieLink::where('id', $this->id)->update(['status' => '3']);
             }
         }

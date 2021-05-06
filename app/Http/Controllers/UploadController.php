@@ -98,22 +98,6 @@ class UploadController extends Controller
             }
         }
 
-        if(!isset($newMovieData['genres']) || count($newMovieData['genres']) < 1) {
-            return response('', 301);
-        }
-
-        if(!isset($newMovieData['actors']) || count($newMovieData['actors']) < 1) {
-            return response('', 301);
-        }
-
-        if(!isset($newMovieData['directors']) || count($newMovieData['directors']) < 1) {
-            return response('', 301);
-        }
-
-        if(!isset($newMovieData['writers']) || count($newMovieData['writers']) < 1) {
-            return response('', 301);
-        }
-
         $videos = [];
         foreach($newMovieData['videos'] as $video) {
             $rx = '~
@@ -210,43 +194,60 @@ class UploadController extends Controller
                 }
             }
 
-            MovieGenre::where('movie_id', $movie->id)->delete();
-            foreach($newMovieData['genres'] as $key => $value) {
-                $genre = Genre::where('name', $value)->firstOrFail();
-                MovieGenre::create([
-                    'movie_id' => $movie->id,
-                    'genre_id' => $genre->id
-                ]);
+            if(isset($newMovieData['genres'])) {
+                MovieGenre::where('movie_id', $movie->id)->delete();
+                foreach($newMovieData['genres'] as $key => $value) {
+                    $genre = Genre::where('name', $value)->firstOrFail();
+                    MovieGenre::create([
+                        'movie_id' => $movie->id,
+                        'genre_id' => $genre->id
+                    ]);
+                }
             }
 
-            MovieActor::where('movie_id', $movie->id)->delete();
-            foreach($newMovieData['actors'] as $key => $value) {
-                $actor = Actor::where('name', $value)->firstOrFail();
-                MovieActor::create([
-                    'movie_id' => $movie->id,
-                    'actor_id' => $actor->id
-                ]);
+            if(isset($newMovieData['actors'])) {
+                MovieActor::where('movie_id', $movie->id)->delete();
+                foreach($newMovieData['actors'] as $key => $value) {
+                    $actor = Actor::where('name', $value)->firstOrFail();
+                    MovieActor::create([
+                        'movie_id' => $movie->id,
+                        'actor_id' => $actor->id
+                    ]);
+                }
             }
 
-            MovieDirector::where('movie_id', $movie->id)->delete();
-            foreach($newMovieData['directors'] as $key => $value) {
-                $director = Director::where('name', $value)->firstOrFail();
-                MovieDirector::create([
-                    'movie_id' => $movie->id,
-                    'director_id' => $director->id
-                ]);
+            if(isset($newMovieData['directors'])) {
+                MovieDirector::where('movie_id', $movie->id)->delete();
+                foreach ($newMovieData['directors'] as $key => $value) {
+                    $director = Director::where('name', $value)->firstOrFail();
+                    MovieDirector::create([
+                        'movie_id' => $movie->id,
+                        'director_id' => $director->id
+                    ]);
+                }
             }
 
-            MovieWriter::where('movie_id', $movie->id)->delete();
-            foreach($newMovieData['writers'] as $key => $value) {
-                $writer = Writer::where('name', $value)->firstOrFail();
-                MovieWriter::create([
-                    'movie_id' => $movie->id,
-                    'writer_id' => $writer->id
-                ]);
+            if(isset($newMovieData['writers'])) {
+                MovieWriter::where('movie_id', $movie->id)->delete();
+                foreach ($newMovieData['writers'] as $key => $value) {
+                    $writer = Writer::where('name', $value)->firstOrFail();
+                    MovieWriter::create([
+                        'movie_id' => $movie->id,
+                        'writer_id' => $writer->id
+                    ]);
+                }
             }
         }
 
+        foreach($newMovieData['links'] as $link) {
+            if($link['link'] !== '') {
+                $exists = MovieLink::where('link', $link['link'])->exists();
+
+                if ($exists) {
+                    return response('', 306);
+                }
+            }
+        }
 
         foreach($newMovieData['links'] as $link) {
             $domain = parse_url(trim($link['link']));

@@ -31,8 +31,8 @@ class Movie extends Model implements Viewable
     use HasFactory, UUIDTrait, SoftDeletes, InteractsWithViews, EloquentJoin;
 
     public $perPage = 24;
-    public static $filters = ['genres', 'quality', 'imdb', 'year', 'name', 'status'];
-    public $fillable = ['status', 'type', 'year', 'season', 'length', 'is_premier', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
+    public static $filters = ['genres', 'quality', 'imdb', 'year', 'name', 'status', 'empty_links', 'premiers'];
+    public $fillable = ['status', 'type', 'year', 'season', 'length', 'is_premier', 'premier_date', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
 
     public function titles()
     {
@@ -132,7 +132,7 @@ class Movie extends Model implements Viewable
     public function scopeTop($query)
     {
         //return $query->active()->where('type', (string) MovieTypeEnum::Movie)->orderByDesc('watched_at')->limit(10);
-        return $query->active()->where('is_premier', 1)->limit(10);
+        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(10);
     }
 
     public function scopePopular($query)
@@ -159,7 +159,7 @@ class Movie extends Model implements Viewable
 
     public function scopeRecommendsPremiers($query)
     {
-        return $query->active()->where('is_premier', 1)->limit(18);
+        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(18);
     }
 
     public function scopeRecommendsDVD($query)
@@ -221,6 +221,12 @@ class Movie extends Model implements Viewable
                 break;
             case 'status':
                 return $query->where('status', (string) $filter);
+                break;
+            case 'empty_links':
+                return $query->doesntHave('links');
+                break;
+            case 'premiers':
+                return $query->where('is_premier', 1)->orderBy('premier_date', 'DESC');
                 break;
             default:
                 return $query;

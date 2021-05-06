@@ -389,6 +389,12 @@ class AdminController extends Controller
                 }
 
                 $movieData['status'] = (string)$movieData['status'];
+
+
+                if($movie->is_premier === 0 && $movieData['is_premier']) {
+                    $movieData['premier_date'] = now();
+                }
+
                 $movie->update($movieData);
 
                 return new AdminMovieResource($movie);
@@ -786,5 +792,25 @@ class AdminController extends Controller
         }
 
         return response('', 404);
+    }
+
+    public function refreshMovie(Request $request) {
+        if($request->user()->can('admin.movies.index')) {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
+            }
+
+            $movie = Movie::findOrFail($request->get('id'));
+
+            Movie::download($movie->imdb_id, $movie->porthu_id, $movie->user_id);
+
+            $movie = Movie::findOrFail($request->get('id'));
+
+            return new AdminMovieResource($movie);
+        }
     }
 }

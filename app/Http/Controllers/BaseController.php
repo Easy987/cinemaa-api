@@ -100,11 +100,11 @@ class BaseController extends Controller
 
     }
 
-    public function share(Request $request, $lang, $slug, $year)
+    public function share(Request $request, $lang, $slug, $year, $length)
     {
         $userAgent = $request->header('User-Agent');
 
-        $movie = Movie::bySlug($slug)->where('year', $year)->firstOrFail();
+        $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->firstOrFail();
         $title = $movie->titles()->where('lang', $lang)->first();
         if(!$title) {
             $title = $movie->titles->first();

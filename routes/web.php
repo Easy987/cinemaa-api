@@ -18,4 +18,4 @@ Route::get('/{link_id}', [BaseController::class, 'link'])->name('link');
 Route::post('/{uuid}/{lang}/{movie_id}/report/{link_id}', [BaseController::class, 'report'])->name('report');
 
 
-Route::get('/share/{lang}/{slug}/{year}', [BaseController::class, 'share'])->name('share');
+Route::get('/share/{lang}/{slug}/{year}/{length}', [BaseController::class, 'share'])->name('share');

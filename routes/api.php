@@ -57,7 +57,7 @@ Route::group(['middleware' => ['api'], 'prefix' => 'movies'], function () {
     Route::get('type/to_be_watcheds', [MovieController::class, 'toBeWatcheds']);
     Route::get('popularAll', [MovieController::class, 'popularAll']);
     Route::post('submitLink', [MovieController::class, 'submitLink']);
-    Route::get('movie/{slug}/{year}', [MovieController::class, 'movie']);
+    Route::get('movie/{slug}/{year}/{length}', [MovieController::class, 'movie']);
 
 
     Route::group(['middleware' => ['auth:api'], 'prefix' => 'upload'], function () {
@@ -142,6 +142,7 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
     Route::delete('movies', [AdminController::class, 'deleteMovie']);
     Route::post('movies/block', [AdminController::class, 'blockMovie']);
     Route::post('movies/accept', [AdminController::class, 'acceptMovie']);
+    Route::post('movies/refresh', [AdminController::class, 'refreshMovie']);
     Route::get('movies/{username}', [AdminController::class, 'movie']);
     Route::post('movies/{username}', [AdminController::class, 'saveMovie']);
 

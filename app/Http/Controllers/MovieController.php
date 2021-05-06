@@ -41,9 +41,9 @@ class MovieController extends Controller
         return response()->json([
             'data' => [
                 'minYear' => Movie::min('year'),
-                'writers' => ItemResource::collection(Writer::all()),
-                'directors' => ItemResource::collection(Director::all()),
-                'actors' => ItemResource::collection(Actor::all()),
+                'writers' => ItemResource::collection(Writer::orderBy('name')->get()),
+                'directors' => ItemResource::collection(Director::orderBy('name')->get()),
+                'actors' => ItemResource::collection(Actor::orderBy('name')->get()),
                 'sites' => Site::all(),
                 'languageTypes' => LanguageType::all(),
                 'linkTypes' => LinkType::all(),
@@ -138,9 +138,9 @@ class MovieController extends Controller
         return MovieMinimalResource::collection($series->paginate());
     }
 
-    public function movie(Request $request, $slug, $year)
+    public function movie(Request $request, $slug, $year, $length)
     {
-        $movie = Movie::bySlug($slug)->where('year', $year)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments')->firstOrFail();
+        $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments')->firstOrFail();
 
         views($movie)->cooldown(10)->record();
 
@@ -434,6 +434,16 @@ class MovieController extends Controller
 
         $movie = Movie::findOrFail($request->get('movie'));
         $links = $request->get('links');
+
+        foreach($links as $link) {
+            if($link['link'] !== '') {
+                $exists = MovieLink::where('link', $link['link'])->exists();
+
+                if ($exists) {
+                    return response('', 301);
+                }
+            }
+        }
 
         foreach($links as $link) {
             $domain = parse_url(trim($link['link']));
