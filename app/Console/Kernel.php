@@ -30,11 +30,11 @@ class Kernel extends ConsoleKernel
 
         $schedule->call(function () {
             $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
-                $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT']);
+                $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT', 'WOLFSTREAM']);
             })->get();
 
             foreach($links as $link) {
-                dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
+                dispatch(new CheckLink($link->id, $link->link));
             }
         })->weeklyOn(5, '1:00');
     }

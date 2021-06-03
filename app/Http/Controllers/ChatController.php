@@ -115,7 +115,7 @@ class ChatController extends Controller
 
     public function messages(Request $request, $roomID)
     {
-        $room = ChatRoom::with('users', 'messages')->find($roomID);
+        $room = ChatRoom::with('users')->find($roomID);
 
         if(!$room) {
             return [];
@@ -123,7 +123,7 @@ class ChatController extends Controller
 
         $user = $room->users()->where('id', $request->user()->id)->exists();
         if($user) {
-            $messages = ChatMessageResource::collection($room->messages()->orderBy('created_at')->get());
+            $messages = ChatMessageResource::collection($room->messages()->orderByDesc('created_at')->limit(100)->get()->sortBy('created_at'));
             $roomUsers = $room->users()->where('id', '!=', $request->user()->id)->where('last_activity_at', '>', Carbon::now()->subDays(2))->get();
 
             dispatch(new UpdateAllMessageSeen($messages, $roomUsers, $request->user()->id, $room->users->count() === 2))->onQueue('low');

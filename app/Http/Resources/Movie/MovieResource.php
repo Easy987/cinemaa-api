@@ -23,7 +23,7 @@ class MovieResource extends JsonResource
             'poster' => $this->poster ? route('cinema.photo', ['moviePhoto' => $this->poster->id]) : '/img/covers/cover.jpg',
             'genres' => ItemResource::collection($this->genres->take(3)),
             'imdb_rating' => $this->imdb_rating,
-            'rating' => $this->ratings->avg('rating'),
+            'rating' => round($this->ratings->avg('rating'), 1),
             'type' => (int)$this->type,
             'descriptions' => new DescriptionCollection($this->descriptions),
             'writers' => ItemResource::collection($this->writers->take(3)),

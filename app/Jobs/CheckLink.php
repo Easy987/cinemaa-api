@@ -72,7 +72,7 @@ class CheckLink implements ShouldQueue
             }
         } while($statusCode !== 200 && $attempts < $this->maxAttempts);
 
-        if($statusCode === 200) {
+        if($response && $statusCode === 200) {
             $linkBody = Str::lower($response->getBody()->getContents());
 
             if(!Str::contains($this->link, 'dood') && !Str::contains($this->link, 'streamzz') && Str::contains($linkBody, $this->errorTexts)) {

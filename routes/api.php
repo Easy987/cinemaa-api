@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BaseController;
 use App\Jobs\CheckLink;
 use App\Models\Movie\MovieLink;
+use App\Models\Site;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -57,7 +58,7 @@ Route::group(['middleware' => ['api'], 'prefix' => 'movies'], function () {
     Route::get('type/to_be_watcheds', [MovieController::class, 'toBeWatcheds']);
     Route::get('popularAll', [MovieController::class, 'popularAll']);
     Route::post('submitLink', [MovieController::class, 'submitLink']);
-    Route::get('movie/{slug}/{year}/{length}', [MovieController::class, 'movie']);
+    Route::get('movie/{slug}/{year}/{length?}', [MovieController::class, 'movie']);
 
 
     Route::group(['middleware' => ['auth:api'], 'prefix' => 'upload'], function () {
@@ -89,6 +90,8 @@ Route::group(['middleware' => ['api', 'throttle:5,5']], function () {
     Route::post('contact', [ContactController::class, 'contact']);
 });
 
+Route::get('leaderboard', [GeneralController::class, 'leaderboard']);
+
 Route::group(['prefix' => 'general','middleware' => ['api', 'auth:api']], function () {
     Route::get('chat/search', [ChatController::class, 'search']);
     Route::group(['middleware' => ['auth:api']], function () {
@@ -107,18 +110,26 @@ Route::group(['prefix' => 'general','middleware' => ['api', 'auth:api']], functi
     });
 
     Route::get('message_board', [GeneralController::class, 'messageBoardIndex']);
+    Route::delete('message_board/{id}', [GeneralController::class, 'messageBoardDelete']);
     Route::get('requests', [GeneralController::class, 'requests']);
     Route::post('requests', [GeneralController::class, 'submitRequest']);
     Route::delete('requests', [GeneralController::class, 'deleteRequest']);
     Route::group(['middleware' => ['throttle:30,5']], function() {
         Route::post('message_board', [GeneralController::class, 'messageBoardStore']);
     });
+
+    Route::get('leaderboard', [GeneralController::class, 'leaderboard']);
 });
 
 Route::group(['prefix' => 'forum','middleware' => ['api', 'auth:api']], function () {
     Route::get('discussions', [ForumController::class, 'discussions']);
     Route::get('discussions/{id}', [ForumController::class, 'topics']);
     Route::get('discussions/{id}/{topic}', [ForumController::class, 'topic']);
+    Route::get('discussions/{id}/{topic}/posts', [ForumController::class, 'posts']);
+
+    Route::post('post', [ForumController::class, 'post']);
+    Route::post('post/like', [ForumController::class, 'postLike']);
+    Route::post('post/delete', [ForumController::class, 'postDelete']);
 });
 
 Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
@@ -162,22 +173,114 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
 
     Route::get('reports', [AdminController::class, 'reports']);
     Route::delete('reports', [AdminController::class, 'deleteReport']);
+
+    Route::get('forum/discussions', [AdminController::class, 'forumDiscussions']);
+    Route::get('forum/discussions/{id}', [AdminController::class, 'forumDiscussion']);
+    Route::get('forum/topics/{id}', [AdminController::class, 'forumTopic']);
+    Route::get('forum/{id}/topics', [AdminController::class, 'forumTopics']);
+    Route::post('forum/save', [AdminController::class, 'forumSave']);
+    Route::delete('forum/delete', [AdminController::class, 'forumDelete']);
 });
 
 Route::get('nBcYyMVjB8', function() {
+    /*$links = MovieLink::all();
+
+    $count = 0;
+
+    foreach($links as $link) {
+        if($link->site_id !== null) {
+            $site = Site::where('id', $link->site_id)->exists();
+
+            if(!$site) {
+                $link->delete();
+                $count++;
+            }
+        }
+    }
+
+    dd($count);*/
+
+    /*$links = \App\Models\Movie\MovieLink::where('site_id', null)->get();
+    foreach($links as $link) {
+
+        $url = $link['link'];
+        $domain = parse_url(trim($url));
+        if(isset($domain['host'])) {
+            $domain = Site::getDomain($domain['host'], false);
+
+            $site = Site::where('url', $domain)->exists();
+
+            if ($site) {
+                $linkSite = Site::where('url', $domain)->first()->id;
+
+                $link->update(['site_id' => $linkSite]);
+            }
+        }
+    }
+    exit();*/
+
+    /*$movie = \App\Models\Movie\Movie::inRandomOrder()->first();
+    $genres = $movie->genres->take(3)->map(function($genre) {
+        return \Illuminate\Support\Facades\Lang::get('base.genres.' . $genre->name);
+    })->toArray();
+
+    $movieTitle = $movie->getTitle();
+    $poster = null;
+    if($movie->poster()->exists()) {
+        $poster = $movie->poster()->first();
+    }
+
+    $params = [];
+    $params['url'] = 'https://cinemaa.cc/film/' . $movieTitle->slug . '/' . $movie->year . '/' . $movie->length;
+    $params['web_push_topic'] = $movieTitle->slug;
+
+    if($poster) {
+        $keys = ['small_icon', 'large_icon',
+        'chrome_web_icon', 'chrome_web_badge'];
+
+        foreach($keys as $key) {
+            $params[$key] = 'https://cinemaa.cc/api/photos/' . $poster->id;
+        }
+    }
+
+    \Berkayk\OneSignal\OneSignalFacade::addParams($params)->sendNotificationUsingTags(
+        "📢 Új premier érkezett!\n\n⭐".($movieTitle->title)." - ".($movie->year)."⭐\nMűfaj: ".(implode(', ', $genres))."\n" . ($movie->getDescription()->description),
+        array(
+            ["field" => "tag", "key" => "username", "relation" => "=", "value" => 'Easy987'],
+        )
+    );
+
+    dd(1);
+    $movies = DB::connection('old_mysql')->table('movies')->where('imdb_id', '!=', null)->get()->take(100);
+
+    foreach($movies as $movie) {
+        $ownMovie = \App\Models\Movie\Movie::where('imdb_id', $movie->imdb_id)->first();
+
+        $porthu = $movie->porthu !== null && $movie->porthu !== '' ? $movie->porthu : null;
+
+        if($ownMovie && $ownMovie->user_id !== null) {
+            dispatch(new \App\Jobs\DownloadMovie($movie->imdb_id, $porthu, $ownMovie->user_id));
+        } else {
+            dispatch(new \App\Jobs\DownloadMovie($movie->imdb_id, $porthu, null));
+        }
+    }
+    dd(1);
+
     $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
-        $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT']);
-    })->get();
+        $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT', 'WOLFSTREAM']);
+    })->limit(100)->orderBy('created_at', 'DESC')->get();
 
     foreach($links as $link) {
         dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
     }
+
+    dd($links);*/
 });
 /*
 Route::get('nBcYyMVjB8', function(\Illuminate\Support\Facades\Request $request) {
     if(request()->has('test')) {
         $links = \App\Models\Movie\MovieLink::where('site_id', null)->get();
-        $sites = \App\Models\Site::all();é
+        $sites = \App\Models\Site::all();
 
 
         foreach($links as $link) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\Movie\BaseMovieResource;
 use App\Http\Resources\Movie\MinimalLinkResource;
+use App\Http\Resources\Movie\MovieResource;
 use App\Models\Movie\BadLink;
 use App\Models\Movie\Movie;
 use App\Models\Movie\MovieLink;
@@ -74,7 +75,8 @@ class BaseController extends Controller
         $link->movie->update(['watched_at' => now()]);
         views($link)->cooldown(10)->record();
 
-        return redirect('http://adf.ly/23301405/' . $link->link);
+        //return redirect('http://adf.ly/23301405/' . $link->link);
+        return redirect($link->link);
     }
 
     public function report(Request $request, $uuid, $lang, $movie_id, $linkID)
@@ -143,5 +145,38 @@ class BaseController extends Controller
                 return 'serie';
             }
         }
+    }
+
+    public function view(Request $request, $slug, $year, $length = null)
+    {
+        $movie = null;
+
+        if($length) {
+            $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->first();
+        }
+
+        if(!$movie) {
+            $movie = Movie::bySlug($slug)->where('year', $year)->firstOrFail();
+        }
+
+        $title = $movie->titles()->where('lang', 'hu')->first();
+        if(!$title) {
+            $title = $movie->titles->first();
+        }
+
+        $description = $movie->descriptions()->where('lang', 'hu')->first();
+        if(!$description) {
+            $description = $movie->descriptions->first();
+        }
+
+        $image = $movie->poster ? route('cinema.photo', ['moviePhoto' => $movie->poster->id]) : '/img/covers/cover.jpg';
+
+        return view('view')
+            //->with('movie', (new MovieResource($movie))->resolve())
+            ->with('image', $image)
+            ->with('year', $year)
+            ->with('movieTitle', $title->title)
+            ->with('movieDescription', $description->description)
+            ->with('movieImage', $image);
     }
 }

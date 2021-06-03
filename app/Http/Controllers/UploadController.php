@@ -250,13 +250,15 @@ class UploadController extends Controller
         }
 
         foreach($newMovieData['links'] as $link) {
-            $domain = parse_url(trim($link['link']));
-
+            $url = $link['link'];
+            $domain = parse_url(trim($url));
             if(isset($domain['host'])) {
-                $site = Site::where('url', $domain['host'])->exists();
+                $domain = Site::getDomain($domain['host'], false);
 
-                if($site) {
-                    $linkSite = Site::where('url', $domain['host'])->first()->id;
+                $site = Site::where('url', $domain)->exists();
+
+                if ($site) {
+                    $linkSite = Site::where('url', $domain)->first()->id;
                 } else {
                     $linkSite = null;
                 }

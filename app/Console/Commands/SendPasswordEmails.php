@@ -51,7 +51,7 @@ class SendPasswordEmails extends Command
         foreach($users as $user) {
             $password = Str::random(16);
             $this->info($password);
-            $user->update(['password' =>$password]);
+            $user->update(['password' => $password]);
 
             $user->notify(new PasswordNotification($user->username, $password));
 

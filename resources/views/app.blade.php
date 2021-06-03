@@ -24,6 +24,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <link rel="stylesheet" href="/jquery.mCustomScrollbar.min.css" />
+
+    <script data-ad-client="ca-pub-4562643697086060" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -157,7 +159,8 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><i class="fas fa-user"></i></span>
                             </div>
-                            <input type="text" style="height: 29px;" class="form-control" placeholder="{{ __('base.username') }}">
+                            <input class="form-control" placeholder="{{ __('base.username') }}" style="height: 29px;"
+                                   type="text">
 
                         </div>
                         <div class="input-group form-group pt-2 pb-2">
@@ -383,4 +386,15 @@
     });
 
 </script>
+<!-- Banner-First -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-3890640160453569"
+     data-ad-slot="2375609994"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
 </html>

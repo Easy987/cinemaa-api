@@ -43,7 +43,8 @@ class BadLinkResource extends JsonResource
                 'type' => $this->movie->type,
                 'titles' => new TitleCollection($this->movie->titles),
                 'slugs' => new SlugCollection($this->movie->titles),
-                'year' => $this->movie->year
+                'year' => $this->movie->year,
+                'length' => $this->movie->length
             ];
         }
 

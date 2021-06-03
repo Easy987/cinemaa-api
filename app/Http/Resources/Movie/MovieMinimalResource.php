@@ -19,13 +19,13 @@ class MovieMinimalResource extends JsonResource
             'id' => $this->id,
             'titles' => new TitleCollection($this->titles),
             'slugs' => new SlugCollection($this->titles),
-            'poster' => $this->poster ? route('cinema.photo', ['moviePhoto' => $this->poster->id]) : '/img/covers/cover.jpg',
+            'poster' => $this->poster ? secure_url(route('cinema.photo', ['moviePhoto' => $this->poster->id], null)) : '/img/covers/cover.jpg',
             'genres' => ItemResource::collection($this->genres->take(3)),
             'imdb_rating' => $this->imdb_rating,
             'type' => (int)$this->type,
             'year' => (int)$this->year,
             'length' => (int)$this->length,
-            'rating' => $this->ratings->avg('rating'),
+            'rating' => round($this->ratings->avg('rating'), 1),
             'highest_quality' => $this->links ? ($this->links()->first() ? $this->links()->groupBy('language_type_id')->orderBy('language_type_id', 'ASC')->join('language_types', 'language_types.id', '=', 'movies_links.language_type_id')->select('language_types.name')->get() : null ) : null,
         ];
 

@@ -67,6 +67,9 @@ class RoleSeeder extends Seeder
          */
         $permissions[] = Permission::firstOrCreate(['name' => 'admin.sites.index']);
         $permissions[] = Permission::firstOrCreate(['name' => 'admin.sites.delete']);
+        $permissions[] = Permission::firstOrCreate(['name' => 'admin.forums.index']);
+        $permissions[] = Permission::firstOrCreate(['name' => 'admin.forums.create']);
+        $permissions[] = Permission::firstOrCreate(['name' => 'admin.forums.delete']);
         $ownerRole->syncPermissions($permissions);
     }
 }

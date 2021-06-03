@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AdminUserResource;
+use App\Http\Resources\ForumDiscussionResource;
+use App\Http\Resources\ForumTopicResource;
 use App\Http\Resources\Movie\AdminMinimalLinkResource;
 use App\Http\Resources\Movie\AdminMovieMinimalResource;
 use App\Http\Resources\Movie\AdminMovieResource;
@@ -13,6 +16,8 @@ use App\Http\Resources\Movie\MinimalLinkResource;
 use App\Http\Resources\Movie\MovieVideoResource;
 use App\Http\Resources\SiteResource;
 use App\Http\Resources\UserResource;
+use App\Models\Forum\ForumDiscussion;
+use App\Models\Forum\ForumTopic;
 use App\Models\Movie\Actor;
 use App\Models\Movie\BadLink;
 use App\Models\Movie\Director;
@@ -33,9 +38,11 @@ use App\Models\Movie\Writer;
 use App\Models\Role;
 use App\Models\Site;
 use App\Models\User;
+use Berkayk\OneSignal\OneSignalFacade;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use League\CommonMark\Inline\Element\Link;
@@ -59,17 +66,19 @@ class AdminController extends Controller
         if($request->user()->can('admin.users.index')) {
             $users = User::query();
 
-            $hasFilters = false;
-
             if($request->hasAny(User::$filters)){
-                $hasFilters = true;
                 $filters = $request->only(User::$filters);
                 foreach($filters as $type => $filter) {
                     $users = $users->filter($type, json_decode($filter, true));
                 }
             }
 
-            return UserResource::collection($users->paginate(30, ['*'], 'page', $hasFilters ? 1 : $request->get('page')));
+            $paginate = $users->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $users->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return AdminUserResource::collection($paginate);
         }
 
         return response('', 404);
@@ -89,9 +98,10 @@ class AdminController extends Controller
     public function saveUser(Request $request, $username)
     {
         if($request->user()->can('admin.users.index')) {
-            $user = User::where('username', $username)->firstOrFail();
-
             $userData = $request->get('user');
+            $userData['status'] = (string)$userData['status'];
+
+            $user = User::findOrFail($userData['id']);
             $user->update($userData);
 
             if(isset($userData['role'])) {
@@ -161,7 +171,12 @@ class AdminController extends Controller
         if($request->user()->can('admin.comments.index')) {
             $comments = MovieComment::query()->orderBy('created_at', 'DESC');
 
-            return CommentResource::collection($comments->paginate());
+            $paginate = $comments->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $comments->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return CommentResource::collection($paginate);
         }
 
         return response('', 404);
@@ -193,7 +208,12 @@ class AdminController extends Controller
         if($request->user()->can('admin.sites.index')) {
             $sites = Site::query();
 
-            return SiteResource::collection($sites->paginate(30));
+            $paginate = $sites->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $sites->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return SiteResource::collection($paginate);
         }
 
         return response('', 404);
@@ -211,6 +231,8 @@ class AdminController extends Controller
             }
 
             $site = Site::findOrFail($request->get('site'));
+
+            MovieLink::where('site_id', $site->id)->delete();
 
             $site->delete();
 
@@ -255,23 +277,25 @@ class AdminController extends Controller
 
             $movies = Movie::query()->with(['titles', 'poster', 'genres', 'ratings', 'descriptions', 'writers', 'directors', 'videos']);
 
-            if(!$request->user()->can('admin.movies.index')) {
+            if(!$request->user()->can('admin.movies.index') && !$request->has('empty_links')) {
                 $movies = $movies->whereHas('user',  function(Builder $subQuery) use ($request) {
                     return $subQuery->where('id', $request->user()->id);
                 });
             }
 
-            $hasFilters = false;
-
             if($request->hasAny(Movie::$filters)){
-                $hasFilters = true;
                 $filters = $request->only(Movie::$filters);
                 foreach($filters as $type => $filter) {
                     $movies = $movies->filter($type, json_decode($filter, true));
                 }
             }
 
-            return AdminMovieMinimalResource::collection($movies->paginate(30, ['*'], 'page', $hasFilters ? 1 : $request->get('page')));
+            $paginate = $movies->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $movies->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return AdminMovieMinimalResource::collection($paginate);
         }
 
         return response('', 404);
@@ -296,6 +320,8 @@ class AdminController extends Controller
                 $movie = Movie::findOrFail($id);
 
                 $movieData = $request->get('movie');
+
+                $movieData['type'] = (string)$movieData['type'];
 
                 foreach($movieData['titles'] as $key => $value) {
                     $title = MovieTitle::where('movie_id', $movieData['id'])->where('lang', $key)->first();
@@ -390,9 +416,39 @@ class AdminController extends Controller
 
                 $movieData['status'] = (string)$movieData['status'];
 
-
                 if($movie->is_premier === 0 && $movieData['is_premier']) {
                     $movieData['premier_date'] = now();
+
+                    if(config('app.env') !== 'local') {
+                        $genres = $movie->genres->take(3)->map(function($genre) {
+                            return \Illuminate\Support\Facades\Lang::get('base.genres.' . $genre->name);
+                        })->toArray();
+
+                        $movieTitle = $movie->getTitle();
+
+                        $poster = null;
+                        if($movie->poster()->exists()) {
+                            $poster = $movie->poster()->first();
+                        }
+
+                        $params = [];
+                        $params['url'] = 'https://cinemaa.cc/film/' . $movieTitle->slug . '/' . $movie->year . '/' . $movie->length;
+                        $params['web_push_topic'] = $movieTitle->slug;
+
+                        if($poster) {
+                            $keys = ['small_icon', 'large_icon',
+                                'chrome_web_icon', 'chrome_web_badge'];
+
+                            foreach($keys as $key) {
+                                $params[$key] = 'https://cinemaa.cc/api/photos/' . $poster->id;
+                            }
+                        }
+
+                        OneSignalFacade::addParams($params)
+                            ->sendNotificationToAll(
+                            "📢 Új premier érkezett!\n\n⭐".($movieTitle->title)." - ".($movie->year)."⭐\nMűfaj: ".(implode(', ', $genres))."\n" . ($movie->getDescription()->description)
+                            );
+                    }
                 }
 
                 $movie->update($movieData);
@@ -533,17 +589,19 @@ class AdminController extends Controller
                 });
             }
 
-            $hasFilters = false;
-
             if($request->hasAny(MovieLink::$filters)){
-                $hasFilters = true;
                 $filters = $request->only(MovieLink::$filters);
                 foreach($filters as $type => $filter) {
                     $links = $links->filter($type, json_decode($filter, true));
                 }
             }
 
-            return AdminMinimalLinkResource::collection($links->paginate(30));
+            $paginate = $links->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $links->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return AdminMinimalLinkResource::collection($paginate);
         }
 
         return response('', 404);
@@ -698,7 +756,12 @@ class AdminController extends Controller
                 }
             }
 
-            return MovieVideoResource::collection($movieVideos->paginate(30, ['*'], 'page', $hasFilters ? 1 : $request->get('page')));
+            $paginate = $movieVideos->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $movieVideos->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return MovieVideoResource::collection($paginate);
         }
 
         return response('', 404);
@@ -753,9 +816,13 @@ class AdminController extends Controller
         if($request->user()->can('admin.reports.index')) {
 
             $badLinks = BadLink::query()->with('reportable');
-            $hasFilters = false;
 
-            return BadLinkResource::collection($badLinks->paginate(30, ['*'], 'page', $hasFilters ? 1 : $request->get('page')));
+            $paginate = $badLinks->paginate(30);
+            if($request->get('page') > $paginate->lastPage()) {
+                $paginate = $badLinks->paginate(30, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return BadLinkResource::collection($paginate);
         }
 
         return response('', 404);
@@ -778,7 +845,7 @@ class AdminController extends Controller
 
             $badLink = BadLink::findOrFail($badLinkID);
 
-            if($remove) {
+            if($remove === true) {
                 if($badLink->reportable_type === MovieVideo::class) {
                     MovieVideo::where('id', $badLink->reportable->id)->delete();
                 } else {
@@ -811,6 +878,93 @@ class AdminController extends Controller
             $movie = Movie::findOrFail($request->get('id'));
 
             return new AdminMovieResource($movie);
+        }
+    }
+
+    public function forumDiscussions(Request $request)
+    {
+        $discussions = ForumDiscussion::query();
+
+        $paginate = $discussions->paginate(100);
+        if($request->get('page') > $paginate->lastPage()) {
+            $paginate = $discussions->paginate(100, ['*'], 'page', $paginate->lastPage());
+        }
+
+        return ForumDiscussionResource::collection($paginate);
+    }
+
+    public function forumTopics(Request $request, $id)
+    {
+        $discussion = ForumDiscussion::findOrFail($id);
+
+        $topics = $discussion->topics();
+
+        $paginate = $topics->paginate(100);
+        if($request->get('page') > $paginate->lastPage()) {
+            $paginate = $topics->paginate(100, ['*'], 'page', $paginate->lastPage());
+        }
+
+        return ForumTopicResource::collection($paginate);
+    }
+
+    public function forumDiscussion(Request $request, $id)
+    {
+        $discussion = ForumDiscussion::findOrFail($id);
+
+        return new ForumDiscussionResource($discussion);
+    }
+
+    public function forumTopic(Request $request, $id)
+    {
+        $topic = ForumTopic::findOrFail($id);
+
+        return new ForumTopicResource($topic);
+    }
+
+    public function forumDelete(Request $request)
+    {
+        $id = $request->get('id');
+        $type = $request->get('type');
+
+        if($type === 'true') {
+            $discussion = ForumDiscussion::where('id', $id)->firstOrFail();
+        } else {
+            $discussion = ForumTopic::where('id', $id)->firstOrFail();
+        }
+
+        if($request->user()->can('admin.forums.delete')) {
+            $discussion->delete();
+        }
+
+        return response(null,200);
+    }
+
+    public function forumSave(Request $request)
+    {
+        $data = $request->get('discussion');
+        $id = $request->get('id');
+        $type = $request->get('type');
+
+
+        if(isset($data['id'])) { //Editing
+            if($type === 'discussion') {
+                ForumDiscussion::where('id', $id)->update(['name' => $data['name'], 'description' => $data['description']]);
+            } else {
+                ForumTopic::where('id', $id)->update(['name' => $data['name'], 'description' => $data['description']]);
+            }
+        } else { // Saving
+            if($type === 'discussion') {
+                ForumDiscussion::create([
+                    'name' => $data['name'],
+                    'description' => $data['description']
+                ]);
+            } else {
+                ForumTopic::create([
+                    'discussion_id' => $id,
+                    'name' => $data['name'],
+                    'description' => $data['description']
+                ]);
+            }
         }
     }
 }

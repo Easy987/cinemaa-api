@@ -138,9 +138,15 @@ class MovieController extends Controller
         return MovieMinimalResource::collection($series->paginate());
     }
 
-    public function movie(Request $request, $slug, $year, $length)
+    public function movie(Request $request, $slug, $year, $length = null)
     {
-        $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments')->firstOrFail();
+        $movie = Movie::bySlug($slug)->where('year', $year)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments');
+
+        if($length !== null) {
+            $movie = $movie->where('length', $length);
+        }
+
+        $movie = $movie->firstOrFail();
 
         views($movie)->cooldown(10)->record();
 
@@ -446,13 +452,15 @@ class MovieController extends Controller
         }
 
         foreach($links as $link) {
-            $domain = parse_url(trim($link['link']));
-
+            $url = $link['link'];
+            $domain = parse_url(trim($url));
             if(isset($domain['host'])) {
-                $site = Site::where('url', $domain['host'])->exists();
+                $domain = Site::getDomain($domain['host'], false);
+
+                $site = Site::where('url', $domain)->exists();
 
                 if ($site) {
-                    $linkSite = Site::where('url', $domain['host'])->first()->id;
+                    $linkSite = Site::where('url', $domain)->first()->id;
                 } else {
                     $linkSite = null;
                 }
@@ -460,7 +468,7 @@ class MovieController extends Controller
                 $linkType = LinkType::findOrFail($link['linkType']['id']);
                 $languageType = LanguageType::findOrFail($link['languageType']['id']);
 
-                if ($link['link'] !== '') {
+                if($link['link'] !== '') {
                     MovieLink::create([
                         'movie_id' => $movie->id,
                         'site_id' => $linkSite,

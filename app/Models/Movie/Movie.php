@@ -39,6 +39,28 @@ class Movie extends Model implements Viewable
         return $this->hasMany(MovieTitle::class);
     }
 
+    public function getTitle()
+    {
+        $title = $this->titles()->where('lang', 'hu')->first();
+        if($title) {
+            return $title;
+        }
+
+        $title = $this->titles()->where('lang', 'en')->first();
+        return $title;
+    }
+
+    public function getDescription()
+    {
+        $description = $this->descriptions()->where('lang', 'hu')->first();
+        if($description) {
+            return $description;
+        }
+
+        $description = $this->descriptions()->where('lang', 'en')->first();
+        return $description;
+    }
+
     public function descriptions()
     {
         return $this->hasMany(MovieDescription::class);
@@ -132,7 +154,7 @@ class Movie extends Model implements Viewable
     public function scopeTop($query)
     {
         //return $query->active()->where('type', (string) MovieTypeEnum::Movie)->orderByDesc('watched_at')->limit(10);
-        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(10);
+        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC');
     }
 
     public function scopePopular($query)
@@ -159,19 +181,19 @@ class Movie extends Model implements Viewable
 
     public function scopeRecommendsPremiers($query)
     {
-        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(18);
+        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(36);
     }
 
     public function scopeRecommendsDVD($query)
     {
         return $query->active()->whereHas('links.linkType',  function(Builder $subQuery) {
             return $subQuery->where('status', (string) StatusEnum::Active)->where('name', '=', 'dvd');
-        })->orderBy('created_at', 'DESC')->limit(18);
+        })->orderBy('created_at', 'DESC')->limit(36);
     }
 
     public function scopeRecommendsSeries($query)
     {
-        return $query->active()->series()->orderByViews('desc', Period::pastDays(7))->limit(18);
+        return $query->active()->series()->orderByViews('desc', Period::pastDays(7))->limit(36);
     }
 
     public function scopeFilter($query, $type, $filter)
@@ -311,7 +333,7 @@ class Movie extends Model implements Viewable
 
         $needsMafab = false;
 
-        if($porthuID !== null && strlen($porthuID) > 0) {
+        if($porthuID !== null && $porthuID != '') {
             try {
                 $res = $httpClient->get('https://port.hu/adatlap/film/tv/movie/movie-' . $porthuID);
             } catch (ClientException $exception) {

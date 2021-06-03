@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Models\ChatRoom\ChatRoomUser;
 use App\Models\EmailVerification;
 use App\Models\PasswordReset;
+use App\Models\UserIP;
 use App\Models\UserProfilePicture;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -37,6 +38,8 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $message = '';
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required|string|min:6',
@@ -47,15 +50,24 @@ class AuthController extends Controller
         }
 
         if (!$token = JWTAuth::attempt($validator->validated())) {
-            return response()->json(['error' => 'Unauthorized'], 402);
+            $message = 'Unauthorized';
+            return response()->json(['error' => $message], 402);
         }
 
         $user = User::where('username', $request->get('username'))->first();
         if ($user->email_verified_at === null) {
-            return response()->json(['error' => 'Email verification required'], 412);
+            $message = 'Email verification required';
+
+            UserIP::add($user->id, $message);
+
+            return response()->json(['error' => $message], 412);
         }
         if($user->status === '2') {
-            return response()->json(['error' => 'Blocked'], 405);
+            $message = 'Blocked';
+
+            UserIP::add($user->id, $message);
+
+            return response()->json(['error' => $message], 405);
         }
 
         $user->update(['last_login_at' => now()]);
@@ -64,6 +76,8 @@ class AuthController extends Controller
             'room_id' => '93343d2f-6d8b-463e-b4d3-347ef04a461C',
             'user_id' => auth()->user()->id,
         ]);
+
+        UserIP::add($user->id, 'Logged in');
 
         return $this->createNewToken($token, auth()->user());
     }
@@ -80,11 +94,14 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
+
         $user = User::create(array_merge(
             $validator->validated(),
             ['password' => $request->password,
             'secret_uuid' => Str::uuid()]
         ));
+
+        UserIP::add($user->id, 'Registered');
 
         event(new Registered($user));
 
@@ -103,7 +120,12 @@ class AuthController extends Controller
         $token = auth()->refresh();
         $user = JWTAuth::setToken($token)->toUser();
 
-        return $this->createNewToken($token, $user);
+        if($user->status === (string)UserStatusEnum::Verified) {
+            return $this->createNewToken($token, $user);
+        }
+
+        JWTAuth::invalidate($token);
+        return null;
     }
 
     public function verify(Request $request, $token)
@@ -113,6 +135,9 @@ class AuthController extends Controller
         if ($emailVerification) {
             $emailVerification->user->update(['email_verified_at' => now(), 'status' => (string) UserStatusEnum::Verified]);
             $emailVerification->user->assignRole('user');
+
+            UserIP::add($emailVerification->user->id, 'Email verified');
+
             $emailVerification->delete();
 
             return response()->json(['message' => 'User successfully verified.'], 200);
@@ -138,6 +163,9 @@ class AuthController extends Controller
         switch($status) {
             case Password::PASSWORD_RESET:
             case Password::INVALID_USER:
+                $user = User::where('email', $request->get('email'))->first();
+                UserIP::add($user->id, 'Password reset request sent.');
+
                 return response($status, 200);
                 break;
             case Password::RESET_THROTTLED:
@@ -160,7 +188,10 @@ class AuthController extends Controller
         $passwordReset = PasswordReset::where('email', $request->get('email'))->first();
         if($passwordReset) {
             if(Hash::check($token, $passwordReset->token)) {
-                User::where('email', $request->get('email'))->update(['password' => Hash::make($request->get('password'))]);
+                $user = User::where('email', $request->get('email'))->first();
+                $user->update(['password' => Hash::make($request->get('password'))]);
+
+                UserIP::add($user->id, 'Password resetted');
 
                 PasswordReset::where('email', $request->get('email'))->delete();
                 return response('', 200);
@@ -181,6 +212,8 @@ class AuthController extends Controller
 
         $request->user()->update($updatedData);
 
+        UserIP::add($request->user()->id, 'User updated');
+
         return new UserResource(auth()->user());
     }
 
@@ -199,6 +232,7 @@ class AuthController extends Controller
 
         if(Hash::check($request->get('old_password'), $user->password)){
             $user->update(['password' => $request->get('password')]);
+            UserIP::add($user->id, 'Password changed.');
 
             return response('', 200);
         }
@@ -231,11 +265,12 @@ class AuthController extends Controller
         File::makeDirectory($basePath . '/' . $userID, 0777, true, true);
 
         $photo = Image::make($request->image)
-            ->resize(100, 100)
             ->encode('png',100);
 
         Storage::disk('profile')->put( $userID . '/' . $imageName, $photo);
         //$request->image->move(storage_path('images/profiles/' . $userID . '/'), $imageName);
+
+        UserIP::add($request->user()->id, 'Profile picture changed');
 
         return response('', 200);
     }

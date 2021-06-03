@@ -10,4 +10,5 @@ class ForumPostReaction extends Model
     use HasFactory;
 
     public $table = 'forum_posts_reactions';
+    public $fillable = ['post_id', 'user_id', 'type'];
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Forum\ForumPostSeen;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ForumDiscussionResource extends JsonResource
@@ -22,6 +23,7 @@ class ForumDiscussionResource extends JsonResource
             'views' => views($this->resource)->count(),
             'topics' => $this->topics_count,
             'posts' => $this->posts_count,
+            'seen' => $this->posts->count() > 0 ? ForumPostSeen::where('user_id', $request->user()->id)->where('post_id', $this->posts()->latest()->first()->id)->exists() : true,
         ];
     }
 }

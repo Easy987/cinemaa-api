@@ -37,7 +37,8 @@ class AdminMinimalLinkResource extends JsonResource
             $data['movie'] = [
                 'titles' => new TitleCollection($this->movie->titles),
                 'slugs' => new SlugCollection($this->movie->titles),
-                'year' => $this->movie->year
+                'year' => $this->movie->year,
+                'length' => $this->movie->length
             ];
         }
 

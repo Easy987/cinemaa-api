@@ -11,6 +11,7 @@
         "php": "^7.3|^8.0",
         "ext-json": "*",
         "bensampo/laravel-enum": "^3.3",
+        "berkayk/onesignal-laravel": "^1.0",
         "beyondcode/laravel-websockets": "^1.11",
         "cyrildewit/eloquent-viewable": "^6.0",
         "fico7489/laravel-eloquent-join": "^4.1",
