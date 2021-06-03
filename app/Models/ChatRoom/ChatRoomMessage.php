@@ -13,7 +13,7 @@ class ChatRoomMessage extends Model
     use HasFactory, UUIDTrait, SoftDeletes;
 
     public $table = 'chat_rooms_messages';
-    public $fillable = ['id', 'user_id', 'room_id', 'message', 'message_id'];
+    public $fillable = ['id', 'user_id', 'room_id', 'message', 'message_id', 'is_system'];
 
     public function room()
     {

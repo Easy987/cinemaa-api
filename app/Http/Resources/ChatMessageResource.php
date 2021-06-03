@@ -43,6 +43,7 @@ class ChatMessageResource extends JsonResource
             'seen' => $this->seens()->where('id', '!=', $this->authUserID)->exists() ? 1 : 0,
             'replyMessage' => $this->message_id !== null ? new ChatMessageResource($this->replyMessage, $this->authUserID) : null,
             'reactions' => $reactions,
+            'system' => $this->is_system ? true : false,
             'seenBy' => ChatUserResource::collection($this->seens),
         ];
     }

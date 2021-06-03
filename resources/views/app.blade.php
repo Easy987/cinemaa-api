@@ -211,6 +211,7 @@
                                         <th scope="col">{{ __('base.site') }}</th>
                                         <th scope="col">{{ __('base.quality') }}</th>
                                         <th scope="col">{{ __('base.language') }}</th>
+                                        <th scope="col">{{ __('base.message') }}</th>
                                         <th scope="col">{{ __('base.date') }}</th>
                                         <th scope="col">{{ __('base.uploader') }}</th>
                                         <th scope="col">{{ __('base.report') }}</th>
@@ -224,6 +225,7 @@
                                             <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                             <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
                                             <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
+                                            <td>{{ $link['message'] ?? '' }}</td>
                                             <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                             <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
                                             <td class="text-center"><button data-id="{{ $link['id'] }}" class="reportButton"><i data-toggle="tooltip" data-placement="top" title="{{ __('base.report') }}" class="fas fa-bug"></i></button></td>
@@ -235,7 +237,9 @@
                             </div>
                         @endif
                     @else
-                        @if($parts)
+                        @if(count($movie['links']) === 0)
+                            <h3>{{ $lang === 'hu' ? 'Jelenleg egy darab link sincs feltöltve!' : 'There arent any uploaded links for this movie.' }}</h3>
+                        @elseif($parts)
                             @foreach($links as $partIndex => $part)
                                 <div class="accordion" id="accordionPart{{ $partIndex }}">
                                     <div class="accordion-item">
@@ -255,6 +259,7 @@
                                                             <th scope="col">{{ __('base.site') }}</th>
                                                             <th scope="col">{{ __('base.quality') }}</th>
                                                             <th scope="col">{{ __('base.language') }}</th>
+                                                            <th scope="col">{{ __('base.message') }}</th>
                                                             <th scope="col">{{ __('base.date') }}</th>
                                                             <th scope="col">{{ __('base.uploader') }}</th>
                                                             <th scope="col">{{ __('base.report') }}</th>
@@ -268,6 +273,7 @@
                                                                 <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                                                 <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
                                                                 <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
+                                                                <td>{{ $link['message'] ?? '' }}</td>
                                                                 <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                                                 <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
                                                                 <td class="text-center"><button data-id="{{ $link['id'] }}" class="reportButton"><i data-toggle="tooltip" data-placement="top" title="{{ __('base.report') }}" class="fas fa-bug"></i></button></td>
@@ -312,6 +318,7 @@
                                                                                 <th scope="col">{{ __('base.site') }}</th>
                                                                                 <th scope="col">{{ __('base.quality') }}</th>
                                                                                 <th scope="col">{{ __('base.language') }}</th>
+                                                                                <th scope="col">{{ __('base.message') }}</th>
                                                                                 <th scope="col">{{ __('base.date') }}</th>
                                                                                 <th scope="col">{{ __('base.uploader') }}</th>
                                                                                 <th scope="col">{{ __('base.report') }}</th>
@@ -325,6 +332,7 @@
                                                                                     <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                                                                     <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
                                                                                     <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
+                                                                                    <td>{{ $link['message'] ?? '' }}</td>
                                                                                     <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                                                                     <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
                                                                                     <td class="text-center"><button data-id="{{ $link['id'] }}" class="reportButton"><i data-toggle="tooltip" data-placement="top" title="{{ __('base.report') }}" class="fas fa-bug"></i></button></td>
@@ -352,6 +360,31 @@
         <div class="col-1"></div>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: black;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">{{ \Illuminate\Support\Facades\Lang::get('base.report_link') }}</h5>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="link_id" value="">
+                <input type="hidden" id="csrf_token" value="">
+                <div class="mt-3 mb-3 text-center">
+                    Megjegyzés:<br />
+                    <input type="text" id="message" value="">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary exitModal" data-dismiss="modal">{{ \Illuminate\Support\Facades\Lang::get('base.close') }}</button>
+                <button type="button" id="reportLinkButton" class="btn btn-primary" style="background-color: #f77f00;border-color:  #f77f00;">{{ \Illuminate\Support\Facades\Lang::get('base.report') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 </body>
 <script
     src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -366,14 +399,28 @@
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
 
-        $(".reportButton").click(function(){
-            $.post( "report/" + $(this)[0].dataset.id, { _token: "{{ csrf_token() }}" }, function( data ) {
+        $(".exitModal").click(function(){
+            $('#reportModal').modal('hide');
+        });
+
+        $("#reportLinkButton").click(function(){
+            $.post( "report/" + $("#link_id").val(), { _token: "{{ csrf_token() }}", message: $("#message").val() }, function( data ) {
+                $('#reportModal').modal('hide');
                 if(data === 'Created') {
                     $.notify("{{ __('base.thanks_for_report') }}", { position:"bottom right", className:"success"});
                 } else {
                     $.notify("{{ __('base.report_already') }}", { position:"bottom right", className:"error"});
                 }
             });
+        });
+
+        $(".reportButton").click(function(){
+            $('#reportModal').modal('show');
+
+            $("#link_id").val($(this)[0].dataset.id);
+            $("#csrf_token").val("{{ csrf_token() }}");
+
+            /**/
         });
 
         $(window).on("load",function(){

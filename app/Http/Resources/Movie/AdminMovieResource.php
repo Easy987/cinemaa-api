@@ -29,15 +29,15 @@ class AdminMovieResource extends JsonResource
             'writers' => ItemResource::collection($this->writers),
             'directors' => ItemResource::collection($this->directors),
             'videos' => $this->videos,
-            'photos' => $this->photos->map(static function($photo) {
+            /*'photos' => $this->photos->map(static function($photo) {
                 return route('cinema.photo', ['moviePhoto' => $photo->id]);
-            }),
+            }),*/
             'actors' => ItemResource::collection($this->actors->take(10)),
-            'comments' => CommentResource::collection($this->comments->where('status', 1)),
+            //'comments' => CommentResource::collection($this->comments->where('status', 1)),
             'year' => $this->year,
             'length' => $this->length,
-            'also_watch' => MovieMinimalResource::collection(Movie::alsoWatch($this)->get()),
-            'views' => views($this->resource)->count(),
+            //'also_watch' => MovieMinimalResource::collection(Movie::alsoWatch($this)->get()),
+            //'views' => views($this->resource)->count(),
             'status' => $this->status,
             'imdb_id' => $this->imdb_id,
             'is_premier' => $this->is_premier,
@@ -50,25 +50,7 @@ class AdminMovieResource extends JsonResource
         } else {
             $links = $this->links;
         }
-        $array['links'] = LinkResource::collection($links);
-
-        if($request->user()) {
-            $array['rated_by_user'] = $this->ratings()->whereHas('user', function(Builder $subQuery) use ($request) {
-                $subQuery->where('user_id', $request->user()->id);
-            })->exists();
-
-            $array['favourited_by_user'] = $this->favourites()->whereHas('user', function(Builder $subQuery) use ($request) {
-                $subQuery->where('user_id', $request->user()->id);
-            })->exists();
-
-            $array['watched_by_user'] = $this->watched()->whereHas('user', function(Builder $subQuery) use ($request) {
-                $subQuery->where('user_id', $request->user()->id);
-            })->exists();
-
-            $array['to_be_watched_by_user'] = $this->toBeWatched()->whereHas('user', function(Builder $subQuery) use ($request) {
-                $subQuery->where('user_id', $request->user()->id);
-            })->exists();
-        }
+        $array['links'] = AdminMinimalLinkResource::collection($links);
 
         return $array;
     }

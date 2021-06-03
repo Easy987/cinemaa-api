@@ -18,6 +18,9 @@ return [
     'season' => 'évad',
     'episode' => 'epizód',
     'part' => 'rész',
+    'message' => 'Megjegyzés',
+    'report_link' => 'Link bejelentése',
+    'close' => 'Mégsem',
     "languageTypes" => [
         "hu" => "Magyar",
         "en" => "Angol",

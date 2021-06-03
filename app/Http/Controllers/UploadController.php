@@ -271,6 +271,7 @@ class UploadController extends Controller
                         'movie_id' => $movie->id,
                         'site_id' => $linkSite,
                         'link' => $link['link'],
+                        'message' => $link['message'],
                         'link_type_id' => $linkType->id,
                         'language_type_id' => $languageType->id,
                         'user_id' => $request->user()->id,

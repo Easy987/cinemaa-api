@@ -57,6 +57,8 @@ class CheckLink implements ShouldQueue
 
         $attempts = 0;
         do {
+            $response = null;
+            $statusCode = null;
             try {
                 $response = $this->httpClient->get($this->link);
 

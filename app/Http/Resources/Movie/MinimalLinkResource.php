@@ -27,6 +27,7 @@ class MinimalLinkResource extends JsonResource
             'movie' => new MovieResource($this->movie),
             'status' => $this->status,
             'link' => $this->link,
+            'message' => $this->message,
             'part' => $this->part,
             'season' => $this->season,
             'episode' => $this->episode,

@@ -20,6 +20,7 @@ class BadLinkResource extends JsonResource
             'id' => $this->id,
             'user' => new UserResource($this->user),
             'type' => $this->type,
+            'message' => $this->message,
             'created_at' => $this->created_at
         ];
 

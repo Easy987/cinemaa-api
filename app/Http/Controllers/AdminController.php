@@ -845,7 +845,7 @@ class AdminController extends Controller
 
             $badLink = BadLink::findOrFail($badLinkID);
 
-            if($remove === true) {
+            if($remove === 'true') {
                 if($badLink->reportable_type === MovieVideo::class) {
                     MovieVideo::where('id', $badLink->reportable->id)->delete();
                 } else {
@@ -883,42 +883,52 @@ class AdminController extends Controller
 
     public function forumDiscussions(Request $request)
     {
-        $discussions = ForumDiscussion::query();
+        if($request->user()->can('admin.forums.index')) {
+            $discussions = ForumDiscussion::query();
 
-        $paginate = $discussions->paginate(100);
-        if($request->get('page') > $paginate->lastPage()) {
-            $paginate = $discussions->paginate(100, ['*'], 'page', $paginate->lastPage());
+            $paginate = $discussions->paginate(100);
+            if ($request->get('page') > $paginate->lastPage()) {
+                $paginate = $discussions->paginate(100, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return ForumDiscussionResource::collection($paginate);
         }
-
-        return ForumDiscussionResource::collection($paginate);
     }
 
     public function forumTopics(Request $request, $id)
     {
-        $discussion = ForumDiscussion::findOrFail($id);
+        if($request->user()->can('admin.forums.index')) {
+            $discussion = ForumDiscussion::findOrFail($id);
 
-        $topics = $discussion->topics();
+            $topics = $discussion->topics();
 
-        $paginate = $topics->paginate(100);
-        if($request->get('page') > $paginate->lastPage()) {
-            $paginate = $topics->paginate(100, ['*'], 'page', $paginate->lastPage());
+            $paginate = $topics->paginate(100);
+            if ($request->get('page') > $paginate->lastPage()) {
+                $paginate = $topics->paginate(100, ['*'], 'page', $paginate->lastPage());
+            }
+
+            return ForumTopicResource::collection($paginate);
         }
-
-        return ForumTopicResource::collection($paginate);
     }
 
     public function forumDiscussion(Request $request, $id)
     {
-        $discussion = ForumDiscussion::findOrFail($id);
+        if($request->user()->can('admin.forums.index')) {
 
-        return new ForumDiscussionResource($discussion);
+            $discussion = ForumDiscussion::findOrFail($id);
+
+            return new ForumDiscussionResource($discussion);
+        }
     }
 
     public function forumTopic(Request $request, $id)
     {
-        $topic = ForumTopic::findOrFail($id);
+        if($request->user()->can('admin.forums.index')) {
 
-        return new ForumTopicResource($topic);
+            $topic = ForumTopic::findOrFail($id);
+
+            return new ForumTopicResource($topic);
+        }
     }
 
     public function forumDelete(Request $request)
@@ -934,6 +944,8 @@ class AdminController extends Controller
 
         if($request->user()->can('admin.forums.delete')) {
             $discussion->delete();
+        } else {
+            return response(null , 403);
         }
 
         return response(null,200);
@@ -945,26 +957,29 @@ class AdminController extends Controller
         $id = $request->get('id');
         $type = $request->get('type');
 
-
-        if(isset($data['id'])) { //Editing
-            if($type === 'discussion') {
-                ForumDiscussion::where('id', $id)->update(['name' => $data['name'], 'description' => $data['description']]);
-            } else {
-                ForumTopic::where('id', $id)->update(['name' => $data['name'], 'description' => $data['description']]);
+        if($request->user()->can('admin.forums.create')) {
+            if(isset($data['id'])) { //Editing
+                if($type === 'discussion') {
+                    ForumDiscussion::where('id', $id)->update(['name' => $data['name'], 'description' => $data['description']]);
+                } else {
+                    ForumTopic::where('id', $id)->update(['name' => $data['name'], 'description' => $data['description']]);
+                }
+            } else { // Saving
+                if($type === 'discussion') {
+                    ForumDiscussion::create([
+                        'name' => $data['name'],
+                        'description' => $data['description']
+                    ]);
+                } else {
+                    ForumTopic::create([
+                        'discussion_id' => $id,
+                        'name' => $data['name'],
+                        'description' => $data['description']
+                    ]);
+                }
             }
-        } else { // Saving
-            if($type === 'discussion') {
-                ForumDiscussion::create([
-                    'name' => $data['name'],
-                    'description' => $data['description']
-                ]);
-            } else {
-                ForumTopic::create([
-                    'discussion_id' => $id,
-                    'name' => $data['name'],
-                    'description' => $data['description']
-                ]);
-            }
+        } else {
+            return response(null , 403);
         }
     }
 }

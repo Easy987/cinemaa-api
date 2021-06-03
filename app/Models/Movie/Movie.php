@@ -245,7 +245,13 @@ class Movie extends Model implements Viewable
                 return $query->where('status', (string) $filter);
                 break;
             case 'empty_links':
-                return $query->doesntHave('links');
+                return $query->where(function($q) {
+                    $q->doesntHave('links');
+                })->orWhere(function($q){
+                    $q->whereHas('links', function($q){
+                        $q->where('status', '=', '1')->havingRaw('COUNT(*) = 0');
+                    });
+                })->orderByJoin('links.updated_at', 'DESC')->orderByJoin('links.created_at', 'DESC');
                 break;
             case 'premiers':
                 return $query->where('is_premier', 1)->orderBy('premier_date', 'DESC');

@@ -125,6 +125,10 @@ class ForumController extends Controller
 
         $topic = ForumTopic::findOrFail($request->get('topic_id'));
 
+        if($topic->posts()->count() === 0 && !$request->user()->can('admin.forums.index')) {
+            return response(null, 403);
+        }
+
         ForumPost::create([
             'topic_id' => $topic->id,
             'user_id' => $request->user()->id,

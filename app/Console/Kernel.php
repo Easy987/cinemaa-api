@@ -6,6 +6,7 @@ use App\Jobs\CheckLink;
 use App\Models\Movie\MovieLink;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -26,17 +27,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-
         $schedule->call(function () {
             $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
                 $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT', 'WOLFSTREAM']);
             })->get();
 
             foreach($links as $link) {
-                dispatch(new CheckLink($link->id, $link->link));
+                dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
             }
-        })->weeklyOn(5, '1:00');
+        })->weekly();
     }
 
     /**

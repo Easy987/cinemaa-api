@@ -95,6 +95,7 @@ class BaseController extends Controller
                 'type' => 0,
                 'user_id' => $user->id,
                 'movie_id' => $link->movie->id,
+                'message' => $request->get('message')
             ]);
 
             return response('Created', 202);

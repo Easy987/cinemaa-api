@@ -18,6 +18,7 @@ return [
     'season' => 'season',
     'episode' => 'episode',
     'part' => 'part',
+    'message' => 'Message',
     "languageTypes" => [
         "hu" => "Hungarian",
         "en" => "English",

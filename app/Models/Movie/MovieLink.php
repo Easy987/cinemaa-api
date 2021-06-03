@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class MovieLink extends Model implements Viewable
 {
@@ -20,8 +21,19 @@ class MovieLink extends Model implements Viewable
 
     public $table = 'movies_links';
     public $incrementing = false;
-    public $fillable = ['movie_id', 'link_type_id', 'site_id', 'user_id', 'part', 'season', 'episode', 'language_type_id', 'status', 'link', 'created_at', 'updated_at'];
+    public $fillable = ['movie_id', 'link_type_id', 'site_id', 'user_id', 'part', 'season', 'episode', 'language_type_id', 'status', 'link', 'message', 'created_at', 'updated_at'];
     public static $filters = ['url', 'status'];
+
+    protected static function booted()
+    {
+        static::deleting(function ($link) {
+            Log::critical('teszt');
+
+            if(isset($link->user)) {
+                $link->user->sendDeletedLinkChatMessage($link);
+            }
+        });
+    }
 
     public function movie()
     {
