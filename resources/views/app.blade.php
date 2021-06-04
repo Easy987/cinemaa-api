@@ -15,6 +15,18 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
 
+    <!-- ADSENSE -->
+    <script data-ad-client="ca-pub-4562643697086060" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    <!-- ADCASH -->
+
+
+    <!-- PROPELLER -->
+
+    <!--
+    <script>(function(s,u,z,p){s.src=u,s.setAttribute('data-zone',z),p.appendChild(s);})(document.createElement('script'),'https://iclickcdn.com/tag.min.js',4286232,document.body||document.documentElement)</script>
+-->
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -24,16 +36,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <link rel="stylesheet" href="/jquery.mCustomScrollbar.min.css" />
-
-    <!-- ADSENSE -->
-    <script data-ad-client="ca-pub-4562643697086060" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-
-    <!-- ADCASH -->
-    <script src="//acscdn.com/script/ippg.js" data-adel="inpage" zid="4616527" rr="0" mads="2"></script>
-
-    <!-- PROPELLER -->
-    <script src="https://glimtors.net/pfe/current/tag.min.js?z=4286086" data-cfasync="false" async></script>
-
 
     <style>
         body {
