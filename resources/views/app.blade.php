@@ -25,7 +25,16 @@
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <link rel="stylesheet" href="/jquery.mCustomScrollbar.min.css" />
 
+    <!-- ADSENSE -->
     <script data-ad-client="ca-pub-4562643697086060" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    <!-- ADCASH -->
+    <script src="//acscdn.com/script/ippg.js" data-adel="inpage" zid="4616527" rr="0" mads="2"></script>
+
+    <!-- PROPELLER -->
+    <script src="https://glimtors.net/pfe/current/tag.min.js?z=4286086" data-cfasync="false" async></script>
+
+
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -176,7 +185,9 @@
                 </div>
             </div>
             <div class="row p-md-5 p-2" style="background: rgba(0, 0, 0, 0.18)">
-                @if($movie === null)
+                @if($only_auth)
+                    <h1>{{ $lang === 'hu' ? 'A megadott film csak bejelentkezett felhasználók számára elérhető!' : 'The given movie is only available to logged in users!' }}</h1>
+                @elseif($movie === null)
                     <h1>{{ $lang === 'hu' ? 'A megadott film nem található!' : 'The given movie doesnt exists!' }}</h1>
                 @else
                     <h1 class="text-center">{{ $movie['titles'][$lang]  }}</h1>

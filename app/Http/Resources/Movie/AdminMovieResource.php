@@ -43,6 +43,7 @@ class AdminMovieResource extends JsonResource
             'is_premier' => $this->is_premier,
             'porthu_id' => $this->porthu_id,
             'created_at' => $this->created_at,
+            'only_auth' => $this->only_auth
         ];
 
         if($request->user()->hasRole('uploader')) {

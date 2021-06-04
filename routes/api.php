@@ -46,6 +46,8 @@ Route::group(['middleware' => ['api', 'throttle:300,5'], 'prefix' => 'auth'], fu
 Route::group(['middleware' => ['api'], 'prefix' => 'movies'], function () {
     Route::get('info', [MovieController::class, 'info']);
     Route::get('top', [MovieController::class, 'top']);
+    Route::get('premiers/movies', [MovieController::class, 'premierMovies']);
+    Route::get('premiers/series', [MovieController::class, 'premierSeries']);
     Route::get('popular', [MovieController::class, 'popular']);
     Route::get('recommends/premiers', [MovieController::class, 'recommendsPremiers']);
     Route::get('recommends/dvd', [MovieController::class, 'recommendsDVD']);
@@ -183,6 +185,18 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
 });
 
 Route::get('nBcYyMVjB8', function() {
+
+    /*
+    $systemUser = \App\Models\User::where('username', 'SYSTEM')->first();
+    $chatRoomUsers = \App\Models\ChatRoom\ChatRoomUser::where('room_id', '93343d2f-6d8b-463e-b4d3-347ef04a461C')
+        ->where('user_id', '!=', $systemUser->id)
+        ->whereHas('user', function($query) {
+            $query->where('last_login_at', null)
+                ->orWhere('last_login_at', '<', \Carbon\Carbon::now()->addMonths(-3));
+        })->delete();
+
+    dd(1);*/
+
     /*$links = MovieLink::all();
 
     $count = 0;

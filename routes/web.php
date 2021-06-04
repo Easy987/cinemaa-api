@@ -12,6 +12,10 @@ use App\Http\Controllers\BaseController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('/sw.js', function() {
+    return response()->file(public_path('sw.js'));
+});
+
 Route::get('/movie/{slug}/{year}/{length?}', [BaseController::class, 'view'])->name('view');
 Route::get('/film/{slug}/{year}/{length?}', [BaseController::class, 'view'])->name('view');
 

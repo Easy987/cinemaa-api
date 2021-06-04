@@ -12,7 +12,7 @@ class UserIP extends Model
     protected $fillable = ['user_id', 'ip_address', 'message'];
 
     public static function add($userID, $message) {
-        $ip = $_SERVER["HTTP_CF_CONNECTING_IP"] ?? self::getIp();
+        $ip = $_SERVER["HTTP_X_FORWARDED_FOR"] ?? self::getIp();
 
         self::create([
             'user_id' => $userID,

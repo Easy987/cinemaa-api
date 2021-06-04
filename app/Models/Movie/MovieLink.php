@@ -27,8 +27,6 @@ class MovieLink extends Model implements Viewable
     protected static function booted()
     {
         static::deleting(function ($link) {
-            Log::critical('teszt');
-
             if(isset($link->user)) {
                 $link->user->sendDeletedLinkChatMessage($link);
             }

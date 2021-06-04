@@ -62,6 +62,11 @@ return [
             'root'   => storage_path('images/movies/'),
         ],
 
+        'uploads' => [
+            'driver' => 'local',
+            'root'   => storage_path('uploads/'),
+        ],
+
     ],
 
     /*

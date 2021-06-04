@@ -24,6 +24,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -147,6 +149,16 @@ class ChatController extends Controller
         $data = $request->get('data');
         $messageID = $request->get('id');
         $room = ChatRoom::find($data['roomId']);
+
+        /*if(isset($data['uploaded_file']) && $data['uploaded_file'] !== null) {
+            $basePath = storage_path('uploads/');
+
+            if(!File::isDirectory($basePath)) {
+                File::makeDirectory($basePath, 0777, true, true);
+            }
+
+            Storage::disk('uploads')->put($data['file']['name'] . '.' . $data['file']['extension'], $data['uploaded_file']);
+        }*/
 
         if(!$room) {
             $room = ChatRoom::create([

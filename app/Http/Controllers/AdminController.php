@@ -6,6 +6,7 @@ use App\Http\Resources\AdminUserResource;
 use App\Http\Resources\ForumDiscussionResource;
 use App\Http\Resources\ForumTopicResource;
 use App\Http\Resources\Movie\AdminMinimalLinkResource;
+use App\Http\Resources\Movie\AdminMinimalLinksResource;
 use App\Http\Resources\Movie\AdminMovieMinimalResource;
 use App\Http\Resources\Movie\AdminMovieResource;
 use App\Http\Resources\Movie\BadLinkResource;
@@ -31,6 +32,7 @@ use App\Models\Movie\MovieDescription;
 use App\Models\Movie\MovieDirector;
 use App\Models\Movie\MovieGenre;
 use App\Models\Movie\MovieLink;
+use App\Models\Movie\MoviePhoto;
 use App\Models\Movie\MovieTitle;
 use App\Models\Movie\MovieVideo;
 use App\Models\Movie\MovieWriter;
@@ -43,8 +45,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 use League\CommonMark\Inline\Element\Link;
 
 class AdminController extends Controller
@@ -321,7 +325,38 @@ class AdminController extends Controller
 
                 $movieData = $request->get('movie');
 
+                if(!$request->user()->can('admin.sites.delete')) {
+                    unset($movieData['only_auth']);
+                }
+
                 $movieData['type'] = (string)$movieData['type'];
+
+                if(isset($movieData['poster'])) {
+                    $basePath = storage_path('images/movies/');
+
+                    $imageName = 'poster.png';
+
+                    File::makeDirectory($basePath . '/' . $movie->id, 0777, true, true);
+
+                    $existingPoster = MoviePhoto::where('movie_id', $movie->id)->where('is_poster', 1)->first();
+
+                    if($existingPoster) {
+                        Storage::disk('movies')->delete($movie->id . '/' . 'poster.' . $existingPoster->extension);
+                        $existingPoster->delete();
+                    }
+
+                    $photo = Image::make($movieData['poster'])
+                        ->resize(270, 400)
+                        ->encode('png',100);
+
+                    Storage::disk('movies')->put( $movie->id . '/' . $imageName, $photo);
+
+                    MoviePhoto::create([
+                        'movie_id' => $movie->id,
+                        'is_poster' => 1,
+                        'extension' => 'png'
+                    ]);
+                }
 
                 foreach($movieData['titles'] as $key => $value) {
                     $title = MovieTitle::where('movie_id', $movieData['id'])->where('lang', $key)->first();
@@ -601,7 +636,7 @@ class AdminController extends Controller
                 $paginate = $links->paginate(30, ['*'], 'page', $paginate->lastPage());
             }
 
-            return AdminMinimalLinkResource::collection($paginate);
+            return AdminMinimalLinksResource::collection($paginate);
         }
 
         return response('', 404);

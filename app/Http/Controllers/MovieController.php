@@ -53,9 +53,19 @@ class MovieController extends Controller
         ]);
     }
 
+    public function premierMovies(Request $request)
+    {
+        return MovieMinimalResource::collection(Movie::minimal()->movies()->top()->get());
+    }
+
+    public function premierSeries(Request $request)
+    {
+        return MovieMinimalResource::collection(Movie::minimal()->series()->top()->get());
+    }
+
     public function top(Request $request)
     {
-        return MovieMinimalResource::collection(Movie::minimal()->top()->get());
+        return MovieMinimalResource::collection(Movie::minimal()->movies()->top()->get());
     }
 
     public function popular(Request $request)

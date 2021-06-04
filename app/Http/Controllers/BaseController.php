@@ -19,13 +19,20 @@ class BaseController extends Controller
 {
     public function empty(Request $request)
     {
-        return view('app')->with('movie', null)->with('lang', 'hu');
+        return view('app')->with('only_auth', false)->with('movie', null)->with('lang', 'hu');
     }
 
     public function index(Request $request, $uuid, $lang, $movie_id)
     {
         App::setLocale($lang);
         $movie = Movie::findOrFail($movie_id);
+
+        if($movie->only_auth && !User::where('secret_uuid', $uuid)->exists()) {
+            return view('app')
+                ->with('only_auth', true)
+                ->with('lang', $lang)
+                ->with('uuid', $uuid);
+        }
 
         $movieLinks = $movie->links()->where('status', '1')->orderBy('language_type_id', 'ASC')->orderBy('link_type_id', 'ASC')->orderBy('created_at', 'ASC')->get();
 
@@ -62,10 +69,10 @@ class BaseController extends Controller
 
                 ksort($links);
             }
-            return view('app')->with('user', Auth::guard('web')->user())->with('movie', (new BaseMovieResource($movie))->resolve())->with('lang', $lang)->with('uuid', $uuid)->with('parts', $hasParts)->with('links', $links);
+            return view('app')->with('only_auth', false)->with('user', Auth::guard('web')->user())->with('movie', (new BaseMovieResource($movie))->resolve())->with('lang', $lang)->with('uuid', $uuid)->with('parts', $hasParts)->with('links', $links);
         }
 
-        return view('app')->with('user', Auth::guard('web')->user())->with('movie', (new BaseMovieResource($movie))->resolve())->with('lang', $lang)->with('uuid', $uuid)->with('links', MinimalLinkResource::collection($movieLinks)->resolve());
+        return view('app')->with('only_auth', false)->with('user', Auth::guard('web')->user())->with('movie', (new BaseMovieResource($movie))->resolve())->with('lang', $lang)->with('uuid', $uuid)->with('links', MinimalLinkResource::collection($movieLinks)->resolve());
     }
 
     public function link(Request $request, $linkID)
@@ -157,7 +164,11 @@ class BaseController extends Controller
         }
 
         if(!$movie) {
-            $movie = Movie::bySlug($slug)->where('year', $year)->firstOrFail();
+            $movie = Movie::bySlug($slug)->where('year', $year)->first();
+        }
+
+        if(!$movie) {
+            return redirect(config('app.frontend_url'));
         }
 
         $title = $movie->titles()->where('lang', 'hu')->first();

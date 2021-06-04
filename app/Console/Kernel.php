@@ -35,7 +35,7 @@ class Kernel extends ConsoleKernel
             foreach($links as $link) {
                 dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
             }
-        })->weekly();
+        })->daily();
     }
 
     /**

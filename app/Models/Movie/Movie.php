@@ -32,7 +32,7 @@ class Movie extends Model implements Viewable
 
     public $perPage = 24;
     public static $filters = ['genres', 'quality', 'imdb', 'year', 'name', 'status', 'empty_links', 'premiers'];
-    public $fillable = ['status', 'type', 'year', 'season', 'length', 'is_premier', 'premier_date', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
+    public $fillable = ['status', 'only_auth', 'type', 'year', 'season', 'length', 'is_premier', 'premier_date', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
 
     public function titles()
     {
