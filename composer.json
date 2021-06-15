@@ -27,6 +27,7 @@
         "paquettg/php-html-parser": "^3.1",
         "pusher/pusher-php-server": "~5.0",
         "spatie/laravel-permission": "^4.0",
+        "spatie/laravel-sitemap": "^5.9",
         "tymon/jwt-auth": "^1.0"
     },
     "require-dev": {

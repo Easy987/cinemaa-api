@@ -46,8 +46,8 @@ class AdminMovieResource extends JsonResource
             'only_auth' => $this->only_auth
         ];
 
-        if($request->user()->hasRole('uploader')) {
-            $links = $this->links->where('user_id', $request->user()->id)->get();
+        if(!$request->user()->can('admin.movies.index')) {
+            $links = $this->links()->where('user_id', $request->user()->id)->get();
         } else {
             $links = $this->links;
         }

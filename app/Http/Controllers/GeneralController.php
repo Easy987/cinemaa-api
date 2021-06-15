@@ -12,6 +12,7 @@ use App\Models\Movie\Movie;
 use App\Models\Movie\MovieComment;
 use App\Models\Movie\MovieLink;
 use App\Models\Movie\MovieRating;
+use App\Models\Movie\MovieView;
 use App\Models\Movie\MovieWatched;
 use App\Models\RequestNotification;
 use App\Models\User;
@@ -119,20 +120,23 @@ class GeneralController extends Controller
 
     public function leaderboard(Request $request)
     {
-        $data = Cache::remember('leaderboard', 60*60*24, function() use ($request) {
+        $data = Cache::remember('leaderboard', /*60*60*24*/ 1, function() use ($request) {
             $data = [];
 
             // feltöltött adatlapok darabszáma
-            $data['uploaded_movies'] = Movie::has('user')->with('user')->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
+            $data['uploaded_movies'] = Movie::has('user')->with('user')->withTrashed()->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
 
             // feltöltött linkek darabszáma
-            $data['uploaded_links'] = MovieLink::has('user')->with('user')->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
+            $data['uploaded_links'] = MovieLink::has('user')->with('user')->withTrashed()->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
 
             // adatlap értékelések darabszáma
             $data['movies_rated'] = MovieRating::has('user')->with('user')->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
 
-            // látott filmek darabszáma
+            // megnézett adatlapok darabszáma
             $data['watched_movies'] = MovieWatched::has('user')->with('user')->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
+
+            // megtekintett adatlapok darabszáma
+            $data['viewed_movies'] = MovieView::has('user')->with('user')->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();
 
             // kommentek darabszáma
             $data['comments'] = MovieComment::has('user')->with('user')->groupBy('user_id')->select('user_id', DB::raw('COUNT(user_id) as count'))->where('user_id', '!=', null)->orderByDesc(DB::raw('COUNT(user_id)'))->get();

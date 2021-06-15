@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MovieTypeEnum;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ContactController;
@@ -9,12 +10,10 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\BaseController;
-use App\Jobs\CheckLink;
-use App\Models\Movie\MovieLink;
-use App\Models\Site;
-use Illuminate\Support\Facades\DB;
+use App\Models\Movie\Movie;
 use Illuminate\Support\Facades\Route;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +89,10 @@ Route::group(['middleware' => ['api'], 'prefix' => 'photos'], function () {
 
 Route::group(['middleware' => ['api', 'throttle:5,5']], function () {
     Route::post('contact', [ContactController::class, 'contact']);
+});
+
+Route::group(['middleware' => ['api']], function () {
+
 });
 
 Route::get('leaderboard', [GeneralController::class, 'leaderboard']);
@@ -184,8 +187,111 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
     Route::delete('forum/delete', [AdminController::class, 'forumDelete']);
 });
 
+Route::get('/sitemap.xml', function() {
+    return response()->file(public_path('sitemap.xml'));
+});
+
 Route::get('nBcYyMVjB8', function() {
 
+
+    /*
+    $movies = DB::connection('old_mysql')->table('movies')->where('imdb_id', '!=', null)->get()->take(100);
+
+    foreach($movies as $movie) {
+        $ownMovie = \App\Models\Movie\Movie::where('imdb_id', $movie->imdb_id)->first();
+
+        $porthu = $movie->porthu !== null && $movie->porthu !== '' ? $movie->porthu : null;
+
+        if($ownMovie && $ownMovie->user_id !== null) {
+            dispatch(new \App\Jobs\DownloadMovie($movie->imdb_id, $porthu, $ownMovie->user_id));
+        } else {
+            dispatch(new \App\Jobs\DownloadMovie($movie->imdb_id, $porthu, null));
+        }
+    }
+*/
+    //$asd = \JoggApp\GoogleTranslate\GoogleTranslateFacade::translate('hello, what is your name?', 'hu');
+    /*
+
+    $links = MovieLink::query()->onlyTrashed()->inRandomOrder()->limit(50)->orderBy('deleted_at', 'DESC')->get();
+
+
+    $deleted = 0;
+    $all = $links->count();
+    $stats = [];
+    $errorTexts = [
+        "deleted by",
+        "removed by",
+        "deletion",
+        "error-code",
+        "doesn't exist",
+        "doesnt exist",
+        "not found",
+        "not be found",
+        "can't find",
+        "cant find",
+        "has been removed",
+        "images/default/video_box/no.jpg", // Indavideo
+    ];
+    $httpClient = new Client(['http_errors' => false]);
+
+    foreach($links as $link) {
+        $attempts = 0;
+        $alreadyInserted = [];
+        do {
+            $response = null;
+            $statusCode = null;
+            try {
+                $response = $httpClient->get($link->link);
+
+                $statusCode = $response->getStatusCode();
+
+                $attempts++;
+
+                sleep(1);
+            } catch (\Exception $exception) {
+                $attempts = 10;
+            }
+        } while($statusCode !== 200 && $attempts < 2);
+
+        if($response && $statusCode === 200) {
+            $linkBody = Str::lower($response->getBody()->getContents());
+
+            if(Str::contains($linkBody, $errorTexts)) {
+                $deleted++;
+            } else {
+                dump($link->link);
+            }
+
+            $dom = new Dom();
+            $dom->loadStr($linkBody);
+            $texts = $dom->find('//text()');
+
+            foreach($texts as $text) {
+                $word = $text->nodeValue ?? $text->text;
+
+                $word = trim($word);
+
+                if($word !== '') {
+                    if(!in_array($word, $alreadyInserted, true)) {
+                        if(array_key_exists($word, $stats)) {
+                            $stats[$word]++;
+                        } else {
+                            $stats[$word] = 1;
+
+                            $alreadyInserted[] = $word;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    asort($stats);
+
+    dump($all);
+    dump($deleted);
+    dd($stats);
+    */
     /*
     $systemUser = \App\Models\User::where('username', 'SYSTEM')->first();
     $chatRoomUsers = \App\Models\ChatRoom\ChatRoomUser::where('room_id', '93343d2f-6d8b-463e-b4d3-347ef04a461C')

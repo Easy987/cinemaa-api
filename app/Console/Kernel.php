@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\CheckLink;
+use App\Jobs\GenerateSitemap;
 use App\Models\Movie\MovieLink;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -36,6 +37,8 @@ class Kernel extends ConsoleKernel
                 dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
             }
         })->daily();
+
+        $schedule->job(new GenerateSitemap)->monthly();
     }
 
     /**

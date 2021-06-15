@@ -125,7 +125,15 @@ class ChatController extends Controller
 
         $user = $room->users()->where('id', $request->user()->id)->exists();
         if($user) {
-            $messages = ChatMessageResource::collection($room->messages()->orderByDesc('created_at')->limit(100)->get()->sortBy('created_at'));
+            if($request->has('count')) {
+                $count = $request->get('count');
+            } else {
+                $count = 1;
+            }
+
+            $messages = $room->messages()->orderByDesc('created_at')->skip(10*($count-1))->limit(10)->get()->sortBy('created_at');
+
+            $messages = ChatMessageResource::collection($messages);
             $roomUsers = $room->users()->where('id', '!=', $request->user()->id)->where('last_activity_at', '>', Carbon::now()->subDays(2))->get();
 
             dispatch(new UpdateAllMessageSeen($messages, $roomUsers, $request->user()->id, $room->users->count() === 2));

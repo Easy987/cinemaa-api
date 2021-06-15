@@ -30,7 +30,7 @@ class AdminMinimalLinksResource extends JsonResource
             'season' => $this->season,
             'episode' => $this->episode,
             //'views' => views($this->resource)->count(),
-            //'created_at' => $this->created_at,
+            'created_at' => $this->created_at,
         ];
 
         if($this->movie) {

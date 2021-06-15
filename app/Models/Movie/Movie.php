@@ -32,7 +32,7 @@ class Movie extends Model implements Viewable
 
     public $perPage = 24;
     public static $filters = ['genres', 'quality', 'imdb', 'year', 'name', 'status', 'empty_links', 'premiers'];
-    public $fillable = ['status', 'only_auth', 'type', 'year', 'season', 'length', 'is_premier', 'premier_date', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
+    public $fillable = ['last_seen_date', 'status', 'only_auth', 'type', 'year', 'season', 'length', 'is_premier', 'premier_date', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
 
     public function titles()
     {
@@ -181,19 +181,21 @@ class Movie extends Model implements Viewable
 
     public function scopeRecommendsPremiers($query)
     {
-        return $query->active()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(36);
+        return $query->active()->movies()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(36);
     }
 
     public function scopeRecommendsDVD($query)
     {
-        return $query->active()->whereHas('links.linkType',  function(Builder $subQuery) {
+        return $query->active()->movies()->where('is_premier', 1)->whereHas('links.linkType',  function(Builder $subQuery) {
             return $subQuery->where('status', (string) StatusEnum::Active)->where('name', '=', 'dvd');
-        })->orderBy('created_at', 'DESC')->limit(36);
+        })->whereHas('links.languageType',  function(Builder $subQuery) {
+            return $subQuery->where('name', '=', 'hu');
+        })->orderBy('premier_date', 'DESC')->limit(36);
     }
 
     public function scopeRecommendsSeries($query)
     {
-        return $query->active()->series()->orderByViews('desc', Period::pastDays(7))->limit(36);
+        return $query->active()->series()->where('is_premier', 1)->orderBy('premier_date', 'DESC')->limit(36);
     }
 
     public function scopeFilter($query, $type, $filter)
@@ -251,7 +253,8 @@ class Movie extends Model implements Viewable
                     $q->whereHas('links', function($q){
                         $q->where('status', '=', '1')->havingRaw('COUNT(*) = 0');
                     });
-                })->orderByJoin('links.updated_at', 'DESC')->orderByJoin('links.created_at', 'DESC');
+                })//->orderByJoin('links.updated_at', 'DESC')->orderByJoin('links.created_at', 'DESC');
+                ->orderBy('last_seen_date', 'ASC');
                 break;
             case 'premiers':
                 return $query->where('is_premier', 1)->orderBy('premier_date', 'DESC');

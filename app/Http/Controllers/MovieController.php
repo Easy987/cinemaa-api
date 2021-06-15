@@ -21,6 +21,7 @@ use App\Models\Movie\MovieLink;
 use App\Models\Movie\MovieRating;
 use App\Models\Movie\MovieToBeWatched;
 use App\Models\Movie\MovieVideo;
+use App\Models\Movie\MovieView;
 use App\Models\Movie\MovieWatched;
 use App\Models\Movie\Writer;
 use App\Models\Site;
@@ -38,17 +39,28 @@ class MovieController extends Controller
 
     public function info(Request $request)
     {
+        if($request->has('cinemaa-admin')) {
+            return response()->json([
+                'data' => [
+                    'minYear' => Movie::min('year'),
+                    'writers' => ItemResource::collection(Writer::orderBy('name')->get()),
+                    'directors' => ItemResource::collection(Director::orderBy('name')->get()),
+                    'actors' => ItemResource::collection(Actor::orderBy('name')->get()),
+                    'sites' => Site::all(),
+                    'languageTypes' => LanguageType::all(),
+                    'linkTypes' => LinkType::all(),
+                    'users' => User::select('id', 'username')->get(),
+                    'genres' => ItemResource::collection(Genre::all())
+                ]
+            ]);
+        }
+
         return response()->json([
             'data' => [
                 'minYear' => Movie::min('year'),
-                'writers' => ItemResource::collection(Writer::orderBy('name')->get()),
-                'directors' => ItemResource::collection(Director::orderBy('name')->get()),
-                'actors' => ItemResource::collection(Actor::orderBy('name')->get()),
                 'sites' => Site::all(),
                 'languageTypes' => LanguageType::all(),
                 'linkTypes' => LinkType::all(),
-                'users' => User::select('id', 'username')->get(),
-                'genres' => ItemResource::collection(Genre::all())
             ]
         ]);
     }
@@ -150,17 +162,37 @@ class MovieController extends Controller
 
     public function movie(Request $request, $slug, $year, $length = null)
     {
-        $movie = Movie::bySlug($slug)->where('year', $year)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments');
+        $movie = null;
 
-        if($length !== null) {
-            $movie = $movie->where('length', $length);
+        if ($length !== null) {
+            $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->exists();
+            if ($movie) {
+                $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments')->first();
+            }
         }
 
-        $movie = $movie->firstOrFail();
+        if (!$movie) {
+            $movie = Movie::bySlug($slug)->where('year', $year)->exists();
+            if ($movie) {
+                $movie = Movie::bySlug($slug)->where('year', $year)->with('titles', 'poster', 'genres', 'descriptions', 'writers', 'directors', 'actors', 'comments')->first();
+            }
+        }
 
-        views($movie)->cooldown(10)->record();
+        if ($movie) {
+            views($movie)->cooldown(10)->record();
 
-        return new MovieResource($movie);
+            if($request->user()) {
+                MovieView::firstOrCreate([
+                    'user_id' => $request->user()->id,
+                    'movie_id' => $movie->id,
+                ], [
+                    'user_id' => $request->user()->id,
+                    'movie_id' => $movie->id,
+                ]);
+            }
+
+            return new MovieResource($movie);
+        }
     }
 
     public function comment(Request $request)
@@ -426,13 +458,19 @@ class MovieController extends Controller
             return respone('', 403);
         }
 
-        BadLink::create([
+        $array = [
             'reportable_type' => $type === 0 ? MovieLink::class : MovieVideo::class,
             'reportable_id' => $id,
             'type' => $type,
             'user_id' => $request->user()->id,
             'movie_id' => $movie->id,
-        ]);
+        ];
+
+        if($request->has('message')) {
+            $array['message'] = $request->get('message');
+        }
+
+        BadLink::create($array);
 
         return response('', 200);
     }

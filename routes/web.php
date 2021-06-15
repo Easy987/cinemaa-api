@@ -18,6 +18,8 @@ Route::get('/sw.js', function() {
 
 Route::get('/movie/{slug}/{year}/{length?}', [BaseController::class, 'view'])->name('view');
 Route::get('/film/{slug}/{year}/{length?}', [BaseController::class, 'view'])->name('view');
+Route::get('/sorozat/{slug}/{year}/{length?}', [BaseController::class, 'view'])->name('view');
+Route::get('/serie/{slug}/{year}/{length?}', [BaseController::class, 'view'])->name('view');
 
 Route::get('/', [BaseController::class, 'empty']);
 Route::get('/{uuid}/{lang}/{movie_id}/', [BaseController::class, 'index']);

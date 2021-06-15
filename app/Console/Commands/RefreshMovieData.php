@@ -101,6 +101,8 @@ class RefreshMovieData extends Command
                     $movies = $movies->has($relation, '<', $this->actionTypesCount[Str::ucfirst($relation)]);
                 }
 
+                //$movies = $movies->where('id', '93384a69-5abb-41ca-b717-82b5b0a2642f');
+
                 $movies = $movies->get();
                 break;
         }
@@ -208,6 +210,8 @@ class RefreshMovieData extends Command
 
                     $usableURL = ('https://www.mafab.hu/search/&search=' . urlencode($origTitle));
 
+                    $found = false;
+
                     $dom = new Dom();
                     $dom->loadStr(file_get_contents($usableURL));
                     $foundMovies = $dom->find('.col-xs-13 .movie_title_link');
@@ -222,12 +226,16 @@ class RefreshMovieData extends Command
                             $dom = new Dom();
                             $dom->loadStr(file_get_contents($movieLink));
 
-                            $content = $dom->find('.bio-content p');
-                            if(isset($content[0])) {
-                                $hungarianPlot = html_entity_decode($content[0]->firstChild()->text);
+                            $content = $dom->find('.bio-content');
+                            if(!$found && isset($content[0])) {
+                                $hungarianPlot = html_entity_decode($content[0]->innertext);
 
                                 $plots->add(['lang' => 'hu', 'description' => trim($hungarianPlot)]);
-                            } else {
+
+                                $found = true;
+                            }
+
+                            if(!$found) {
                                 preg_match('/(\d+).html/', $href, $matches);
 
                                 $mafabMovieID = $matches[1];
@@ -250,11 +258,59 @@ class RefreshMovieData extends Command
                                     $hungarianPlot = html_entity_decode($plot[0]->firstChild()->text);
 
                                     $plots->add(['lang' => 'hu', 'description' => trim($hungarianPlot)]);
+
+                                    $found = true;
                                 }
                             }
-
                             break;
                         }
+                    }
+
+                    if(!$found) {
+                        $usableURL = ('https://www.themoviedb.org/search?query=' . urlencode($origTitle));
+
+                        $dom = new Dom();
+                        $dom->loadStr(file_get_contents($usableURL));
+                        $foundMovies = $dom->find('.results .card');
+                        foreach($foundMovies as $index => $theMovieDBMovie) {
+                            $a = $dom->find('.results .card');
+                            if(isset($a[$index])) {
+                                $href = $dom->find('.results .card a')[$index]->getAttribute('href');
+
+                                if(isset($dom->find('.results .card .result h2')[$index]) && isset($dom->find('.results .card .release_date')[$index])) {
+                                    $title = $dom->find('.results .card .result h2')[$index]->firstChild()->text;
+                                    $year = $dom->find('.results .card .release_date')[$index]->firstChild()->text;
+
+                                    $movieLink = 'https://www.themoviedb.org/' . $href . '?language=hu-HU';
+
+                                    if(
+                                        Str::contains($movieLink, Str::slug($movieTitle)) ||
+                                        ((Str::contains(Str::lower($title), Str::lower($movieTitle)) || Str::contains(Str::lower($title), Str::lower($imdb->title())) || Str::contains(Str::lower($title), Str::lower($movie->getTitle()->title))) && Str::contains(Str::lower($year), Str::lower($imdb->year()))) ||
+                                        $foundMovies->count() === 1) {
+                                        $dom = new Dom();
+                                        $dom->loadStr(file_get_contents($movieLink));
+
+                                        $content = $dom->find('meta[property="og:description"]');
+
+                                        if(!$found && isset($content[0])) {
+                                            $hungarianPlot = html_entity_decode($content[0]->getAttribute('content'));
+
+                                            $plots->add(['lang' => 'hu', 'description' => trim($hungarianPlot)]);
+
+                                            $found = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if($plots->count() === 2) {
+                        $this->info('Adding');
+                    } else if($plots->where('lang', 'hu')->count() === 0) {
+                        $this->info('English found');
+                    } else {
+                        $this->info('Hungarian found');
                     }
 
                     foreach($plots as $plot) {

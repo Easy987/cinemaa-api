@@ -19,7 +19,7 @@ class BaseController extends Controller
 {
     public function empty(Request $request)
     {
-        return view('app')->with('only_auth', false)->with('movie', null)->with('lang', 'hu');
+        return view('app_empty')->with('only_auth', false)->with('movie', null)->with('lang', 'hu');
     }
 
     public function index(Request $request, $uuid, $lang, $movie_id)
@@ -160,11 +160,17 @@ class BaseController extends Controller
         $movie = null;
 
         if($length) {
-            $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->first();
+            $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->exists();
+            if($movie) {
+                $movie = Movie::bySlug($slug)->where('year', $year)->where('length', $length)->first();
+            }
         }
 
         if(!$movie) {
-            $movie = Movie::bySlug($slug)->where('year', $year)->first();
+            $movie = Movie::bySlug($slug)->where('year', $year)->exists();
+            if($movie) {
+                $movie = Movie::bySlug($slug)->where('year', $year)->first();
+            }
         }
 
         if(!$movie) {

@@ -20,7 +20,7 @@ class PhotoController extends Controller
                 if($moviePhoto->is_poster) {
                     $imagePath = storage_path() . '/images/movies/' . $moviePhoto->movie_id . '/poster.' . $moviePhoto->extension;
                 }
-                return $image->make($imagePath);
+                return $image->make($imagePath)->encode('webp', 70);
             },604800,false);
 
             return Response::make($cachedImage, 200, [ 'Content-Type' => 'image' ] )
@@ -37,7 +37,7 @@ class PhotoController extends Controller
             $cachedImage = Image::cache(function($image) use ($userProfilePicture){
                 $imagePath = storage_path() . '/images/profiles/' . $userProfilePicture->user->id . '/' . $userProfilePicture->id . '.' . $userProfilePicture->extension;
 
-                return $image->make($imagePath);
+                return $image->make($imagePath)->encode('webp', 70);
             },604800,false);
 
             return Response::make($cachedImage, 200, [ 'Content-Type' => 'image' ] )

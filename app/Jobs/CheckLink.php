@@ -27,18 +27,23 @@ class CheckLink implements ShouldQueue
      */
     private $id;
     private $link;
-    private $httpClient;
     private $errorTexts = [
-        "not found",
-        "error-code",
-        "doesn't exist",
         "deleted by",
         "removed by",
-        "can't find the file",
+        "deletion",
+        "error-code",
+        "doesn't exist",
+        "doesnt exist",
+        "not found",
+        "not be found",
+        "can't find",
+        "cant find",
         "has been removed",
-        "images/default/video_box/no.jpg" // Indavideo
+        "0.0 Mb",
+        "https://vidlox.me/player_clappr1/small.mp4", // Vidlox
+        "images/default/video_box/no.jpg", // Indavideo
     ];
-    private $maxAttempts = 10;
+    private $maxAttempts = 3;
 
     public function __construct($id, $link)
     {
@@ -53,24 +58,23 @@ class CheckLink implements ShouldQueue
      */
     public function handle()
     {
-        $this->httpClient = new Client(['http_errors' => false]);
+        $httpClient = new Client(['http_errors' => false]);
 
         $attempts = 0;
         do {
             $response = null;
             $statusCode = null;
             try {
-                $response = $this->httpClient->get($this->link);
+                $response = $httpClient->get($this->link);
 
                 $statusCode = $response->getStatusCode();
 
                 $attempts++;
 
                 sleep(1);
-            } catch (ClientException $exception) {
+            } catch(\Exception $exception) {
                 MovieLink::where('id', $this->id)->update(['status' => '3']);
-            } catch (ServerException $exception) {
-                MovieLink::where('id', $this->id)->update(['status' => '3']);
+                $attempts = $this->maxAttempts;
             }
         } while($statusCode !== 200 && $attempts < $this->maxAttempts);
 
@@ -80,6 +84,10 @@ class CheckLink implements ShouldQueue
             if(!Str::contains($this->link, 'dood') && !Str::contains($this->link, 'streamzz') && Str::contains($linkBody, $this->errorTexts)) {
                 MovieLink::where('id', $this->id)->update(['status' => '3']);
             }
+
+            /*if(!Str::contains($this->link, 'dood') && !Str::contains($this->link, 'streamzz') && Str::contains($linkBody, $this->errorTexts)) {
+
+            }*/
         }
     }
 }

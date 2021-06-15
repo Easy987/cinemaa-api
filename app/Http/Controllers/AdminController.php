@@ -282,7 +282,9 @@ class AdminController extends Controller
             $movies = Movie::query()->with(['titles', 'poster', 'genres', 'ratings', 'descriptions', 'writers', 'directors', 'videos']);
 
             if(!$request->user()->can('admin.movies.index') && !$request->has('empty_links')) {
-                $movies = $movies->whereHas('user',  function(Builder $subQuery) use ($request) {
+                $movies = $movies->whereHas('links',  function(Builder $subQuery) use ($request) {
+                    return $subQuery->where('user_id', $request->user()->id);
+                })->orWhereHas('user',  function(Builder $subQuery) use ($request) {
                     return $subQuery->where('id', $request->user()->id);
                 });
             }
@@ -293,6 +295,8 @@ class AdminController extends Controller
                     $movies = $movies->filter($type, json_decode($filter, true));
                 }
             }
+
+            $movies = $movies->orderByDesc('created_at');
 
             $paginate = $movies->paginate(30);
             if($request->get('page') > $paginate->lastPage()) {
@@ -307,8 +311,10 @@ class AdminController extends Controller
 
     public function movie(Request $request, $id)
     {
-        if($request->user()->can('admin.index') && $this->hasAccessToMovie($id, $request->user())) {
+        if($request->user()->can('admin.index') && $this->hasAccessToViewMovie($id, $request->user())) {
             $movie = Movie::findOrFail($id);
+
+            $movie->update(['last_seen_date' => now()]);
 
             return new AdminMovieResource($movie);
         }
@@ -331,7 +337,7 @@ class AdminController extends Controller
 
                 $movieData['type'] = (string)$movieData['type'];
 
-                if(isset($movieData['poster'])) {
+                if(isset($movieData['poster_upload'])) {
                     $basePath = storage_path('images/movies/');
 
                     $imageName = 'poster.png';
@@ -438,10 +444,10 @@ class AdminController extends Controller
                     ], [
                         'movie_id' => $movieData['id'],
                         'status' => (string)$link['status'],
-                        'site_id' => $link['site'] ? $link['site']['id'] : null,
-                        'link_type_id' => $link['linkType'] ? $link['linkType']['id'] : null,
-                        'language_type_id' => $link['languageType'] ? $link['languageType']['id'] : null,
-                        'user_id' => $link['user'] ? $link['user']['id'] : null,
+                        'site_id' => $link['site']['id'] ?? null,
+                        'link_type_id' => $link['linkType']['id'] ?? null,
+                        'language_type_id' => $link['languageType']['id'] ?? null,
+                        'user_id' => $link['user']['id'] ?? null,
                         'link' => $link['link'],
                         'part' => $link['part'] ?? 0,
                         'season' => $link['season'] ?? 0,
@@ -591,6 +597,24 @@ class AdminController extends Controller
         return false;
     }
 
+    private function hasAccessToViewMovie($id, $user) {
+        if($user->can('admin.movies.index')) {
+            return true;
+        }
+
+        $movie = Movie::findOrFail($id);
+        if($movie->user_id === $user->id) {
+            return true;
+        }
+
+        if($movie->links()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     public function deleteVideo(Request $request)
     {
         if($request->user()->can('admin.movies.index')) {
@@ -630,6 +654,8 @@ class AdminController extends Controller
                     $links = $links->filter($type, json_decode($filter, true));
                 }
             }
+
+            $links = $links->orderByDesc('created_at');
 
             $paginate = $links->paginate(30);
             if($request->get('page') > $paginate->lastPage()) {
