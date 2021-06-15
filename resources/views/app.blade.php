@@ -428,6 +428,8 @@
                 } else {
                     $.notify("{{ __('base.report_already') }}", { position:"bottom right", className:"error"});
                 }
+
+                $("#message").val('');
             });
         });
 
