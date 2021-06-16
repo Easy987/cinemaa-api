@@ -194,7 +194,7 @@ class BaseController extends Controller
             ->with('image', $image)
             ->with('year', $year)
             ->with('movieTitle', $title->title)
-            ->with('movieDescription', $description->description)
+            ->with('movieDescription', $description->description ?? '')
             ->with('movieImage', $image);
     }
 }

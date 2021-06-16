@@ -6,12 +6,12 @@
 
     <title>Filmforrás</title>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ env('FRONTEND_URL') }}/img/icons/filmforras/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ env('FRONTEND_URL') }}/img/icons/filmforras/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ env('FRONTEND_URL') }}/img/icons/filmforras/favicon-16x16.png">
-    <link rel="manifest" href="{{ env('FRONTEND_URL') }}/img/icons/filmforras/site.webmanifest">
-    <link rel="shortcut icon" href="{{ env('FRONTEND_URL') }}/img/icons/filmforras/favicon.ico">
-    <link rel="mask-icon" href="{{ env('FRONTEND_URL') }}/img/icons/filmforras/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/filmforras/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/filmforras/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/filmforras/favicon-16x16.png">
+    <link rel="manifest" href="/icons/filmforras/site.webmanifest">
+    <link rel="shortcut icon" href="/icons/filmforras/favicon.ico">
+    <link rel="mask-icon" href="/icons/filmforras/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
 
@@ -159,14 +159,14 @@
         }
     </style>
 </head>
-<body style="background-color: #1a191f; color: white;">
+<body id="body" style="background-color: #1a191f; color: white;">
 <div class="container">
     <div class="row">
         <div class="col-1"></div>
         <div class="col-10">
             <div class="row pt-5 pb-3">
                 <div class="col-md-4 col-12">
-                    <img class="img-fluid" src="{{ env('FRONTEND_URL') }}/img/forras.png">
+                    <img class="img-fluid" src="/img/forras.png">
                 </div>
                 <div class="col-md-3 col-12 pt-md-0 pt-4" style="margin-left: auto;">
                     <form>
@@ -238,10 +238,10 @@
                                     <tbody class="text-center">
                                     @foreach($links as $link)
                                         <tr>
-                                            <td class="text-center"><span class="playButton" data-url="{{ route('link', ['link_id' => $link['id']]) }}" data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank"><i class="fas fa-play"></i></span></td>
+                                            <td class="text-center playButton" data-url="{{ route('link', ['link_id' => $link['id']]) }}" data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}"><i class="fas fa-play"></i></td>
                                             <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                             <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
-                                            <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
+                                            <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="/img/flags/{{ $link['flagName'] }}.png"></td>
                                             <td>{{ $link['message'] ?? '' }}</td>
                                             <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                             <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
@@ -286,10 +286,10 @@
                                                         <tbody class="text-center">
                                                         @foreach($part as $link)
                                                             <tr>
-                                                                <td class="text-center"><span class="playButton" data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" data-url="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></span></td>
+                                                                <td class="text-center"><span class="playButton" data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" data-url="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></span></td>
                                                                 <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                                                 <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
-                                                                <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
+                                                                <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="/img/flags/{{ $link['flagName'] }}.png"></td>
                                                                 <td>{{ $link['message'] ?? '' }}</td>
                                                                 <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                                                 <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
@@ -345,10 +345,10 @@
                                                                             <tbody class="text-center">
                                                                             @foreach($episode as $link)
                                                                                 <tr>
-                                                                                    <td class="text-center"><span class="playButton" data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" target="_blank" data-url="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></span></td>
+                                                                                    <td class="text-center"><span class="playButton" data-toggle="tooltip" data-placement="top" title="{{ __('base.play') }}" data-url="{{ route('link', ['link_id' => $link['id']]) }}"><i class="fas fa-play"></i></span></td>
                                                                                     <td>{{ $link['site'] ? $link['site']['name'] : __('base.unknown') }}</td>
                                                                                     <td>{{ __('base.qualities.' . $link['linkType']['name']) }}</td>
-                                                                                    <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="{{ env('FRONTEND_URL') }}/img/flags/{{ $link['flagName'] }}.png"></td>
+                                                                                    <td><img style="width: 32px;" data-toggle="tooltip" data-placement="top" title="{{ __('base.languageTypes.' . $link['languageType']['name']) }}" src="/img/flags/{{ $link['flagName'] }}.png"></td>
                                                                                     <td>{{ $link['message'] ?? '' }}</td>
                                                                                     <td>{{ \Carbon\Carbon::parse($link['created_at'])->format('Y-m-d H:i:s')  }}</td>
                                                                                     <td>{{ $link['user'] ? ($link['user']['public_name'] === 1 ? $link['user']['username'] : __('base.unknown')) : __('base.unknown')  }}</td>
@@ -442,12 +442,17 @@
             /**/
         });
 
-        $(window).on("load",function(){
+        $(document).ready(function(){
             $(".scroll").mCustomScrollbar({
                 axis:"x",
                 theme:"my-theme",
                 mouseWheel:{ enable: true }
             });
+
+            console.log('removing');
+            $("#body").unbind("click"); // Removes all click handlers added by javascript from every element
+            $("[onclick]").removeAttr("onclick"); // Finds all elements with an 'onclick' attribute, and removes that attribute
+            console.log('removed');
         });
 
         $(".playButton").click(function(e) {
