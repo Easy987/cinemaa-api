@@ -189,7 +189,7 @@ class AuthController extends Controller
         if($passwordReset) {
             if(Hash::check($token, $passwordReset->token)) {
                 $user = User::where('email', $request->get('email'))->first();
-                $user->update(['password' => Hash::make($request->get('password'))]);
+                $user->update(['password' => $request->get('password')]);
 
                 UserIP::add($user->id, 'Password resetted');
 

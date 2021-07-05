@@ -31,7 +31,7 @@ class Movie extends Model implements Viewable
     use HasFactory, UUIDTrait, SoftDeletes, InteractsWithViews, EloquentJoin;
 
     public $perPage = 24;
-    public static $filters = ['genres', 'quality', 'imdb', 'year', 'name', 'status', 'empty_links', 'premiers'];
+    public static $filters = ['genres', 'quality', 'imdb', 'year', 'name', 'status', 'empty_links', 'premiers', 'language'];
     public $fillable = ['last_seen_date', 'status', 'only_auth', 'type', 'year', 'season', 'length', 'is_premier', 'premier_date', 'imdb_id', 'imdb_rating', 'imdb_votes', 'user_id', 'porthu_id', 'created_at', 'updated_at', 'accepted_at', 'watched_at'];
 
     public function titles()
@@ -186,10 +186,14 @@ class Movie extends Model implements Viewable
 
     public function scopeRecommendsDVD($query)
     {
-        return $query->active()->movies()->where('is_premier', 1)->whereHas('links.linkType',  function(Builder $subQuery) {
-            return $subQuery->where('status', (string) StatusEnum::Active)->where('name', '=', 'dvd');
-        })->whereHas('links.languageType',  function(Builder $subQuery) {
-            return $subQuery->where('name', '=', 'hu');
+        return $query->movies()->where('is_premier', 1)
+        ->whereHas('links', function(Builder $subQuery) {
+            return $subQuery->where('status', (string) StatusEnum::Active)
+            ->whereHas('linkType', function(Builder $subQuery) {
+                return $subQuery->where('name', '=', 'dvd');
+            })->whereHas('languageType',  function(Builder $subQuery) {
+                return $subQuery->where('name', '=', 'hu');
+            });
         })->orderBy('premier_date', 'DESC')->limit(36);
     }
 
@@ -231,6 +235,17 @@ class Movie extends Model implements Viewable
                 return $query->whereHas('links', function(Builder $subQuery) {
                     $subQuery->where('status', (string) StatusEnum::Active);
                 })->whereHas('links.linkType', function (Builder $subQuery) use ($filter) {
+                    $subQuery->where(function($query) use ($filter){
+                        foreach($filter as $genreFilter) {
+                            $query->orWhere('name', $genreFilter['key']);
+                        }
+                    });
+                });
+                break;
+            case 'language':
+                return $query->whereHas('links', function(Builder $subQuery) {
+                    $subQuery->where('status', (string) StatusEnum::Active);
+                })->whereHas('links.languageType', function (Builder $subQuery) use ($filter) {
                     $subQuery->where(function($query) use ($filter){
                         foreach($filter as $genreFilter) {
                             $query->orWhere('name', $genreFilter['key']);
@@ -287,6 +302,9 @@ class Movie extends Model implements Viewable
             case 'best':
                 return $query->orderByDesc('imdb_rating');
                 break;
+            default:
+                return $query;
+                break;
         }
     }
 
@@ -301,7 +319,7 @@ class Movie extends Model implements Viewable
 
             $httpClient = new Client();
         } catch (Exception $e) {
-            throw new Exception('IMDB ID not found', 404);
+            throw new Exception('IMDB ID not found!', 404);
         }
 
         /* Saving model */

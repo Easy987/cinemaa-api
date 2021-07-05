@@ -274,7 +274,7 @@
         <div class="col-10">
             <div class="row pt-5 pb-3">
                 <div class="col-md-4 col-12">
-                    <img class="img-fluid" src="{{ env('FRONTEND_URL') }}/img/forras.png">
+                    <img class="img-fluid" src="/img/forras.png">
                 </div>
                 <div class="col-md-3 col-12 pt-md-0 pt-4" style="margin-left: auto;">
                     <form>

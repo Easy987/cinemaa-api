@@ -156,6 +156,7 @@ Route::group(['middleware' => ['auth:api'], 'prefix' => 'admin'], function () {
 
     Route::get('movies', [AdminController::class, 'movies']);
     Route::delete('movies', [AdminController::class, 'deleteMovie']);
+    Route::delete('moviesMultiple', [AdminController::class, 'deleteMovies']);
     Route::post('movies/block', [AdminController::class, 'blockMovie']);
     Route::post('movies/accept', [AdminController::class, 'acceptMovie']);
     Route::post('movies/refresh', [AdminController::class, 'refreshMovie']);
@@ -193,6 +194,14 @@ Route::get('/sitemap.xml', function() {
 
 Route::get('nBcYyMVjB8', function() {
 
+    $movies = Movie::limit(20)->movies()->get()->map(function($movie) {
+        return "https://cinemaa.cc/film/" . $movie->getTitle()->slug . '/' . $movie->year . '/' . $movie->length;
+    });
+
+    return response()->json($movies);
+
+
+    //dd(Movie::minimal()->recommendsDVD()->toSql());
 
     /*
     $movies = DB::connection('old_mysql')->table('movies')->where('imdb_id', '!=', null)->get()->take(100);

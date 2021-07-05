@@ -42,6 +42,9 @@ class CheckLink implements ShouldQueue
         "0.0 Mb",
         "https://vidlox.me/player_clappr1/small.mp4", // Vidlox
         "images/default/video_box/no.jpg", // Indavideo
+        "We’re sorry",
+        "Video not found",
+        'content="BLOCKED"'
     ];
     private $maxAttempts = 3;
 
@@ -65,7 +68,7 @@ class CheckLink implements ShouldQueue
             $response = null;
             $statusCode = null;
             try {
-                $response = $httpClient->get($this->link);
+                $response = $httpClient->get($this->link, ['allow_redirects' => true]);
 
                 $statusCode = $response->getStatusCode();
 

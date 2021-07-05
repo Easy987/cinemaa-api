@@ -148,7 +148,7 @@ class MovieController extends Controller
             $series = $series->byType($request->get('type'));
         }
 
-        $movies = $series->active();
+        $series = $series->active();
 
         if($request->hasAny(Movie::$filters)){
             $filters = $request->only(Movie::$filters);

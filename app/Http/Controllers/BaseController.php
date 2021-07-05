@@ -19,7 +19,8 @@ class BaseController extends Controller
 {
     public function empty(Request $request)
     {
-        return view('app_empty')->with('only_auth', false)->with('movie', null)->with('lang', 'hu');
+        //return view('app_empty')->with('only_auth', false)->with('movie', null)->with('lang', 'hu');
+        return redirect('/new');
     }
 
     public function index(Request $request, $uuid, $lang, $movie_id)
@@ -127,7 +128,7 @@ class BaseController extends Controller
 
         $image = $movie->poster ? route('cinema.photo', ['moviePhoto' => $movie->poster->id]) : '/img/covers/cover.jpg';
 
-        $url = config('app.frontend_url') . '/' . $this->calculateMoviePrefix($movie->type, $lang) . '/' . $slug . '/' . $year;
+        $url = config('app.frontend_url') . '/' . $this->calculateMoviePrefix($movie->type, $lang) . '/' . $slug . '/' . $year . '/' . $length;
 
         if (Str::contains($userAgent, 'Facebot') || Str::contains($userAgent, 'facebook')) {
             return view('share')

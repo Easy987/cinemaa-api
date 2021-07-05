@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MovieTypeEnum;
 use App\Http\Resources\AdminUserResource;
 use App\Http\Resources\ForumDiscussionResource;
 use App\Http\Resources\ForumTopicResource;
@@ -351,7 +352,7 @@ class AdminController extends Controller
                         $existingPoster->delete();
                     }
 
-                    $photo = Image::make($movieData['poster'])
+                    $photo = Image::make($movieData['poster_upload'])
                         ->resize(270, 400)
                         ->encode('png',100);
 
@@ -472,8 +473,13 @@ class AdminController extends Controller
                             $poster = $movie->poster()->first();
                         }
 
+                        $movieTypeName = 'film';
+                        if($movie->type === (string) MovieTypeEnum::Series) {
+                            $movieTypeName = 'sorozat';
+                        }
+
                         $params = [];
-                        $params['url'] = 'https://cinemaa.cc/film/' . $movieTitle->slug . '/' . $movie->year . '/' . $movie->length;
+                        $params['url'] = config('app.frontend_url') . '/' . $movieTypeName . '/' . $movieTitle->slug . '/' . $movie->year . '/' . $movie->length;
                         $params['web_push_topic'] = $movieTitle->slug;
 
                         if($poster) {
@@ -522,6 +528,37 @@ class AdminController extends Controller
 
                 return response('', 202);
             }
+        }
+
+        return response('', 404);
+    }
+
+    public function deleteMovies(Request $request)
+    {
+        if($request->user()->can('admin.movies.index')) {
+            $validator = Validator::make($request->all(), [
+                'ids' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
+            }
+
+            $movieIDs = json_decode($request->get('ids'), true);
+
+            foreach($movieIDs as $movieID) {
+                if($movieID['value']) {
+                    $movie = Movie::where('id', $movieID['id'])->firstOrFail();
+
+                    if(!$this->hasAccessToMovie($movie->id, $request->user())) {
+                        return response('', 404);
+                    }
+
+                    $movie->delete();
+                }
+            }
+
+            return response('', 202);
         }
 
         return response('', 404);

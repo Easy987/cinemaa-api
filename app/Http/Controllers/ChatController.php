@@ -21,6 +21,7 @@ use App\Models\ChatRoom\ChatRoomUser;
 use App\Models\RequestNotification;
 use App\Models\User;
 use Carbon\Carbon;
+use http\Env\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -120,7 +121,7 @@ class ChatController extends Controller
         $room = ChatRoom::with('users')->find($roomID);
 
         if(!$room) {
-            return [];
+            return ['data' => []];
         }
 
         $user = $room->users()->where('id', $request->user()->id)->exists();
@@ -280,7 +281,10 @@ class ChatController extends Controller
             })->get();
 
             $filteredRooms = $rooms->filter(function($room) use ($request, $user) {
-                return $room->users->count() === 2 && ($room->users[0]->id === $user->id || $room->users[0]->id === $request->user()->id ) && ($room->users[1]->id === $user->id || $room->users[1]->id === $request->user()->id );
+                return $room->users->count() === 2 &&
+                    ($room->users[0]->id !== $room->users[1]->id) &&
+                    ($room->users[0]->id === $user->id || $room->users[0]->id === $request->user()->id )
+                    && ($room->users[1]->id === $user->id || $room->users[1]->id === $request->user()->id );
             });
 
             if($filteredRooms->count() > 0) {

@@ -306,11 +306,11 @@ class RefreshMovieData extends Command
                     }
 
                     if($plots->count() === 2) {
-                        $this->info('Adding');
+                        $this->info('Adding: ' . $movie->getTitle()->title);
                     } else if($plots->where('lang', 'hu')->count() === 0) {
-                        $this->info('English found');
+                        $this->info('English found: ' . $movie->getTitle()->title);
                     } else {
-                        $this->info('Hungarian found');
+                        $this->info('Hungarian found: ' . $movie->getTitle()->title);
                     }
 
                     foreach($plots as $plot) {
