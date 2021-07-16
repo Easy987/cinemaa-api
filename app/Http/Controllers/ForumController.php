@@ -12,6 +12,7 @@ use App\Models\Forum\ForumPostReaction;
 use App\Models\Forum\ForumPostSeen;
 use App\Models\Forum\ForumTopic;
 use App\Models\Movie\MovieComment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -134,6 +135,8 @@ class ForumController extends Controller
             'user_id' => $request->user()->id,
             'message' => $request->get('message')
         ]);
+
+        User::sendSystemMessageToAdmins("Új fórum hozzászólás érkezett a ".($topic->discussion->name)."/".($topic->name)." fórumba. Hozzászólás: " . $request->get('message'));
 
         return ForumPostResource::collection($topic->posts()->orderBy('created_at')->paginate());
     }

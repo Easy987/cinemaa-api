@@ -43,6 +43,8 @@ class GeneralController extends Controller
             'text' => $request->get('message')
         ]);
 
+        User::sendSystemMessageToAdmins("Új üzenőfal hozzászólás érkezett. Hozzászólás: " . $request->get('message'));
+
         broadcast(new MessageBoardMessageSent(new MessageBoardResource($message)))->toOthers();
 
         return $this->messageBoardIndex($request);

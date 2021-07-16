@@ -89,10 +89,10 @@ class BaseController extends Controller
 
     public function report(Request $request, $uuid, $lang, $movie_id, $linkID)
     {
-        $user = User::where('secret_uuid', $uuid)->firstOrFail();
+        $user = User::where('secret_uuid', $uuid)->first();
         $link = MovieLink::findOrFail($linkID);
 
-        $exists = BadLink::where('reportable_type', MovieLink::class)->where('reportable_id', $link->id)->where('user_id', $user->id)->where('movie_id', $link->movie->id)->exists();
+        $exists = BadLink::where('reportable_type', MovieLink::class)->where('reportable_id', $link->id)->where('movie_id', $link->movie->id)->exists();
 
         if($exists) {
             return response('Exists', 200);
@@ -101,14 +101,13 @@ class BaseController extends Controller
                 'reportable_type' => MovieLink::class,
                 'reportable_id' => $link->id,
                 'type' => 0,
-                'user_id' => $user->id,
+                'user_id' => $user->id ?? 'Ismeretlen',
                 'movie_id' => $link->movie->id,
                 'message' => $request->get('message')
             ]);
 
             return response('Created', 202);
         }
-
     }
 
     public function share(Request $request, $lang, $slug, $year, $length)

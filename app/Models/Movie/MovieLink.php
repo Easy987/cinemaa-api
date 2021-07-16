@@ -27,8 +27,11 @@ class MovieLink extends Model implements Viewable
     protected static function booted()
     {
         static::deleting(function ($link) {
-            if(isset($link->user)) {
-                $link->user->sendDeletedLinkChatMessage($link);
+            if(isset($link->user, $link->movie)) {
+                $link->user->sendSystemMessage("
+    A(z) ".($link->movie->getTitle()->title)." (".($link->movie->year).") adatlaphoz tartozó egyik linked törölve lett.
+    Törölt link: ".($link->link)."
+    ");
             }
         });
     }

@@ -132,61 +132,63 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         }
     }
 
-    public function sendDeletedLinkChatMessage($link) {
-        if(isset($link->movie)) {
-            $systemUser = User::where('username', 'SYSTEM')->first();
+    public static function sendSystemMessageToAdmins($messageText)
+    {
+        $users = self::permission('comments.delete')->get();
 
-            $rooms = ChatRoom::with('users')->has('users', '=', 2)->whereHas('users', function(Builder $query) use ($systemUser) {
-                $query->where('id', $this->id);
-                $query->orWhere('id', $systemUser->id);
-            })->get();
+        foreach($users as $user) {
+            $user->sendSystemMessage($messageText);
+        }
+    }
 
-            $filteredRooms = $rooms->filter(function($room) use ($systemUser) {
-                return $room->users->count() === 2 && ($room->users[0]->id === $systemUser->id || $room->users[0]->id === $this->id ) && ($room->users[1]->id === $systemUser->id || $room->users[1]->id === $this->id );
-            });
+    public function sendSystemMessage($messageText) {
+        $systemUser = self::where('username', 'SYSTEM')->first();
 
-            $newRoom = false;
+        $rooms = ChatRoom::with('users')->has('users', '=', 2)->whereHas('users', function(Builder $query) use ($systemUser) {
+            $query->where('id', $this->id);
+            $query->orWhere('id', $systemUser->id);
+        })->get();
 
-            if($filteredRooms->count() === 0) {
-                $newRoom = true;
+        $filteredRooms = $rooms->filter(function($room) use ($systemUser) {
+            return $room->users->count() === 2 && ($room->users[0]->id === $systemUser->id || $room->users[0]->id === $this->id ) && ($room->users[1]->id === $systemUser->id || $room->users[1]->id === $this->id );
+        });
 
-                $chatRoom = ChatRoom::create([
-                    'name' => 'SYSTEM',
-                    'user_id' => $systemUser->id,
-                ]);
+        $newRoom = false;
 
-                ChatRoomUser::create([
-                    'room_id' => $chatRoom->id,
-                    'user_id' => $this->id,
-                ]);
-                ChatRoomUser::create([
-                    'room_id' => $chatRoom->id,
-                    'user_id' => $systemUser->id,
-                ]);
-            } else {
-                $chatRoom = $filteredRooms->first();
-            }
+        if($filteredRooms->count() === 0) {
+            $newRoom = true;
 
-            $messageText = "
-        A(z) ".($link->movie->getTitle()->title)." (".($link->movie->year).") adatlaphoz tartozó egyik linked törölve lett.
-        Törölt link: ".($link->link)."
-        ";
-
-            $message = ChatRoomMessage::create([
+            $chatRoom = ChatRoom::create([
+                'name' => 'SYSTEM',
                 'user_id' => $systemUser->id,
-                'room_id' => $chatRoom->id,
-                'message' => $messageText,
-                'message_id' => null,
-                'is_system' => 1
             ]);
 
-            $lastMessage = new ChatLastMessageResource($message, $this);
+            ChatRoomUser::create([
+                'room_id' => $chatRoom->id,
+                'user_id' => $this->id,
+            ]);
+            ChatRoomUser::create([
+                'room_id' => $chatRoom->id,
+                'user_id' => $systemUser->id,
+            ]);
+        } else {
+            $chatRoom = $filteredRooms->first();
+        }
 
-            if($newRoom) {
-                broadcast(new ChatRoomCreated($this, $chatRoom))->toOthers();
-            } else {
-                broadcast(new ChatMessageSent($this, new ChatMessageResource($message, $this->id), $lastMessage));
-            }
+        $message = ChatRoomMessage::create([
+            'user_id' => $systemUser->id,
+            'room_id' => $chatRoom->id,
+            'message' => $messageText,
+            'message_id' => null,
+            'is_system' => 1
+        ]);
+
+        $lastMessage = new ChatLastMessageResource($message, $this);
+
+        if($newRoom) {
+            broadcast(new ChatRoomCreated($this, $chatRoom))->toOthers();
+        } else {
+            broadcast(new ChatMessageSent($this, new ChatMessageResource($message, $this->id), $lastMessage));
         }
     }
 }

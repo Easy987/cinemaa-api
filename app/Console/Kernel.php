@@ -38,7 +38,7 @@ class Kernel extends ConsoleKernel
             }
         })->daily();
 
-        $schedule->job(new GenerateSitemap)->monthly();
+        $schedule->job(new GenerateSitemap)->daily();
     }
 
     /**

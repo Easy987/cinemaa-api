@@ -73,6 +73,8 @@ class GenerateSitemap implements ShouldQueue
                 ->setPriority(1));
         }
 
+        File::delete(public_path('sitemap.xml'));
+
         $siteMap->writeToFile(public_path('sitemap.xml'));
     }
 }

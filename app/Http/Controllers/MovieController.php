@@ -215,6 +215,8 @@ class MovieController extends Controller
             'status' => (string)StatusEnum::Active,
         ]);
 
+        User::sendSystemMessageToAdmins("Új adatlap hozzászólás érkezett a(z) " . ($movie->GetTitle()->title) . " adatlapra. Hozzászólás: " .$request->get('comment'));
+
         return new MovieResource($movie);
     }
 
