@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function () {
-            $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
+            $links = MovieLink::query()/*where('status', '!=', '3')*/->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
                 $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT', 'WOLFSTREAM']);
             })->get();
 
