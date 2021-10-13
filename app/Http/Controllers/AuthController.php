@@ -38,7 +38,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $message = '';
+        $user = null;
 
         $validator = Validator::make($request->all(), [
             'username' => 'required|string',
@@ -50,11 +50,35 @@ class AuthController extends Controller
         }
 
         if (!$token = JWTAuth::attempt($validator->validated())) {
-            $message = 'Unauthorized';
-            return response()->json(['error' => $message], 402);
+            $authorized = false;
+            // Check if email was provided
+            $emailAddress = $request->get('username');
+            $user = User::where('email', $emailAddress)->first();
+
+            if($user) {
+                $credentials = [
+                    'username' => $user->username,
+                    'password' => $request->get('password')
+                ];
+
+                if (!$token = JWTAuth::attempt($credentials)) {
+                    $message = 'Unauthorized';
+                    return response()->json(['error' => $message], 402);
+                }
+
+                $authorized = true;
+            }
+
+            if(!$authorized) {
+                $message = 'Unauthorized';
+                return response()->json(['error' => $message], 402);
+            }
         }
 
-        $user = User::where('username', $request->get('username'))->first();
+        if(!$user) {
+            $user = User::where('username', $request->get('username'))->first();
+        }
+
         if ($user->email_verified_at === null) {
             $message = 'Email verification required';
 

@@ -86,11 +86,9 @@ class CheckLink implements ShouldQueue
 
             if(!Str::contains($this->link, 'dood') && !Str::contains($this->link, 'streamzz') && Str::contains($linkBody, $this->errorTexts)) {
                 MovieLink::where('id', $this->id)->update(['status' => '3']);
+            } else {
+                MovieLink::where('id', $this->id)->update(['status' => '2']);
             }
-
-            /*if(!Str::contains($this->link, 'dood') && !Str::contains($this->link, 'streamzz') && Str::contains($linkBody, $this->errorTexts)) {
-
-            }*/
         }
     }
 }

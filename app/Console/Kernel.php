@@ -28,15 +28,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            $links = MovieLink::where('status', '!=', '3')->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
+        /*$schedule->call(function () {
+            $links = MovieLink::query()->whereHas('site', function(\Illuminate\Database\Eloquent\Builder $subQuery) {
                 $subQuery->whereNotIn('name', ['STREAMZZ', 'STREAMCRYPT', 'WOLFSTREAM']);
             })->get();
 
             foreach($links as $link) {
                 dispatch(new CheckLink($link->id, $link->link))->onQueue('low');
             }
-        })->daily();
+        })->daily();*/
 
         $schedule->job(new GenerateSitemap)->daily();
     }
